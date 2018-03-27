@@ -1,1 +1,61 @@
-# Programmatic Layout
+Programmatic-Layout Tutorial
+============================
+
+### Introduction
+
+This tutorial teaches programmatic layout (PL) by demonstrating conversion of an app's user interface (UI) from Interface Builder (IB) to PL.
+
+### Definitions
+
+IB is [descended](https://en.wikipedia.org/wiki/Interface_Builder) from a visual UI editor originally created for the NeXTSTEP operating system. As of Xcode 4, IB is integrated into Xcode itself. Using the IB approach, developers drag UI elements from the Object library onto a storyboard or XIB and then set most or all Auto Layout constraints and UI-element properties using the IB UI. A storyboard is an XML-backed representation of the UI elements of, and connections among, one or more view controllers and their views. A XIB is an XML-backed representation of the UI elements of one view. The Objective-C runtime instantiates views and view controllers represented by XIBs and storyboards.
+
+The PL approach eschews IB. Using PL, developers instantiate UI elements, set their properties, and set Auto Layout constraints using Objective-C or Swift.
+
+In practice, developers often use IB and PL in tandem.  Production-quality apps are likely to have some UI properties and/or constraints that must be set in code, for example if the app has themes or animations. Ardent PL developers cannot entirely avoid IB because editing launch screens requires use of IB.
+
+### Plusses and Minuses of IB _Vis à Vis_ PL
+
+Proponents of IB cite, _inter alia_, the following advantages:
+* IB is more approachable for iOS-development learners, perhaps explaining why many iOS-development-learning [resources](http://web.stanford.edu/class/cs193p/cgi-bin/drupal/) [teach](https://store.raywenderlich.com/products/swift-apprentice) the IB approach. There are [exception](https://www.youtube.com/watch?v=9RydRg0ZKaI)s.
+* Apple is promoting use of IB in WWDC sessions, suggesting that IB is more future-proof than PL. Future iOS features might not be available to PL developers in the same way that multitasking on iPad is not available to developers who have not adapted size classes.
+* Creating a UI in IB is faster and easier to iterate on. In concrete terms, dragging UI elements around a storyboard and fiddling with their properties until the UI takes useful shape is easy, but creating a UI in code without knowing ahead of time _exactly_ what form the UI should take is nigh-impossible. In practice, therefore, PL requires use of some other design tool, for example Sketch or a napkin.
+* An app that uses IB has fewer lines of Swift or Objective-C code than an identically functioning app that uses PL. [Less code is better.](https://blog.codinghorror.com/the-best-code-is-no-code-at-all/) There is an argument that the nuts and bolts of UI creation and layout are not central to an app’s functionality, so developers should offload those nuts and bolts, to the extent possible, to IB in the same way that developers sometimes offload creation and maintenance of their object graphs to CoreData.
+* Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the author of this tutorial was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
+
+Proponents of PL cite, _inter alia_, the following disadvantages of IB:
+* Using IB does mean less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
+* IB's XML format is subject to change between Xcode versions. Changes in format can cause warnings that the developer has to fix. [Two](https://itunes.apple.com/us/app/immigration/id777319358) [apps](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) developed by this tutorial's author experienced these warnings, examples of which appear in the following screenshot.
+
+![Warnings](images/warnings.jpg "Warnings Caused by XIB-Format Change")
+
+* Because the IB file format is not backwards-compatible, old storyboards and XIBs cannot even be opened in newer versions of Xcode, a situation decried [here](http://www.lapcatsoftware.com/articles/working-without-a-nib-part-11.html). UIs created in IB are, in that sense, ticking time-bombs. As Swift evolves, old PL code may not compile, but it can always be opened in Xcode and grokked by the developer.
+* IB hides implementation details from the iOS-development-learner. For example, an IB learner learning about tab bars might learn to click a view controller in the storyboard and click Editor -> Embed In -> Tab Bar Controller. The learner might not realize that a `UITabBarController` gets instantiated at runtime. A PL learner learning about tab bars can't avoid instantiating `UITabBarController` explicitly. The PL approach therefore fosters deeper understanding of UIKit.
+* By requiring the developer to set, by hand, the value of every color, font, padding, and constraint constant, the IB approach
+violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global changes to colors, fonts, paddings, and constraint constants are tedious and error-prone. With the PL approach, these values are set once in code and are easy to change globally.
+* As in [quantum theory](https://www.sciencedaily.com/releases/1998/02/980227055013.htm), the act of observing a storyboard or XIB affects its reality. That is to say, opening a storyboard or XIB in IB "dirties" the underlying file, a change picked up by source control unless discarded. In a world where reviewers of pull requests rightfully expect every commit in a pull request to reflect developer intent, these no-op changes are problematic.
+* Finally, the inscrutable nature of XIB and storyboard files makes resolving merge conflicts in a team environment challenging. Admittedly, these conflicts can be minimized, but not eliminated, by putting each view controller in its own storyboard.
+
+### Tutorial
+
+This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial does argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins now.
+
+1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB).
+
+2\. Poke around the code and storyboard. The app is intended to be simple enough to grok easily but complicated enough to demonstrate PL techniques.
+
+The app is intended to be simple to understand, but here are some comments.
+* There is no way to edit attributed strings in IB, so the app uses a sort of Markdown-lite that allows different formatting for headings, subheadings, and URLs. See `StringExtensions.swift` and `Credits.swift` for details. This technique, developed for [RaceRunner](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) and used by [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467), works pretty well.
+
+* There is, [on information and belief](https://dictionary.law.com/Default.aspx?selected=954), no way to set tab- or navigation-bar fonts in IB, so the app uses an app-delegate-initiated approach from StackOverflow.
+* App-and-button icons are from [The Noun Project](https://thenounproject.com). Consider using this website if you need professional-grade icons but do not have the skill to make them or the budget to commission them.
+
+* The app's color palette is from [Coolors](https://coolors.co). The author of this tutorial is not an artist, so he uses this website for suggestions of harmonious color palettes.
+
+* There are no custom UIView subclasses in the IB app, but this will change in the course of IB conversion.
+
+
+3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard will serve as a reference as you create the views. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
+
+As an aside, when this tutorial refers to a file in the project, the easiest way to find the file is to click the Project Navigator button in the top-left corner of Xcode and type the filename in the search bar, as shown in this screenshot.
+
+![Files](images/files.png "Finding Files in the Project Navigator")
