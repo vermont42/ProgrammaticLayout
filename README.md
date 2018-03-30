@@ -3,7 +3,7 @@ Programmatic-Layout Tutorial
 
 ### TODO
 
-Remove extraneous `import Foundation`s from starter app.
+Remove extraneous `import Foundation`s from starter project.
 
 Rename start app (but not repo) CatBreeds.
 
@@ -43,7 +43,7 @@ violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global ch
 
 ### Tutorial
 
-This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial does argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins now.
+This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins now.
 
 1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB).
 
