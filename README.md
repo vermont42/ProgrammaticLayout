@@ -1,6 +1,12 @@
 Programmatic-Layout Tutorial
 ============================
 
+### TODO
+
+Remove extraneous `import Foundation`s from starter app.
+
+Rename start app (but not repo) CatBreeds.
+
 ### Introduction
 
 This tutorial teaches programmatic layout (PL) by demonstrating conversion of an app's user interface (UI) from Interface Builder (IB) to PL.
@@ -41,7 +47,7 @@ This tutorial takes no position as to whether PL or IB is the better approach. B
 
 1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB).
 
-2\. Poke around the code and storyboard. The app is intended to be simple enough to grok easily but complicated enough to demonstrate PL techniques.
+2\. Poke around the code and storyboard. The app is intended to be simple enough to grok without much effort but complicated enough to demonstrate various PL techniques.
 
 The app is intended to be simple to understand, but here are some comments.
 * There is no way to edit attributed strings in IB, so the app uses a sort of Markdown-lite that allows different formatting for headings, subheadings, and URLs. See `StringExtensions.swift` and `Credits.swift` for details. This technique, developed for [RaceRunner](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) and used by [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467), works pretty well.
@@ -59,3 +65,157 @@ The app is intended to be simple to understand, but here are some comments.
 As an aside, when this tutorial refers to a file in the project, the easiest way to find the file is to click the Project Navigator button in the top-left corner of Xcode and type the filename in the search bar, as shown in this screenshot.
 
 ![Files](images/files.png "Finding Files in the Project Navigator")
+
+
+4\. Resist temptation. Do not build _or_ run. The runtime no longer knows what UI to show, so running would be pointless. Instead, _tell_ the runtime what UI to show by adding the following line, just before the return statement, in `application(_: didFinishLaunchingWithOptions:)` in `AppDelegate.swift`:
+
+```
+window = UIWindow(frame: UIScreen.main.bounds)
+let mainTabBarVC = MainTabBarVC()
+window?.rootViewController = mainTabBarVC
+window?.makeKeyAndVisible()
+```
+
+The purpose of this code is to make an instance of `MainTabBarVC` the root of the app's UI. This code serves the same purpose, conceptually speaking, as the checkbox "Is Initial View Controller" in storyboards.
+
+5\. Note the compilation error `Use of unresolved identifier 'MainTabBarVC'`. This error occurs because in the IB-based app, the storyboard specified a non-subclassed instance of `UITabBarController` as the root of the app's UI, but the PL-based app will use a named subclass, `MainTabBarController`, of `UITabBarController`, and you need to create that subclass. Why a named subclass? The named subclass will have business logic about what tabs to create, what to name them, and what icons to use for them.
+
+Before you do that, here is an aside about roots and navigation. The root of an app's UI depends on how navigation works in that app. A single-screen app would have a `UIViewController` subclass as its root. A single-screen app that uses a `UINavigationController` would have have a `UINavigationController` subclass as its root. This subclass would instantiate the app's first `UIViewController`. An app whose navigation is based on a third-party hamburger menu like [SideMenu](https://github.com/jonkykong/SideMenu) would have, as its root, a `UIViewController` subclass that sets up the hamburger menu.
+
+Back to the custom `UITabBarController` subclass. In the group `ViewControllers`, create an empty file called `MainTabBarVC.swift`. Paste the following code into it:
+
+```
+import UIKit
+
+class MainTabBarVC: UITabBarController {
+  // 0
+  internal static let tabs = ["Browse", "Credits"]
+
+  init() {
+    super.init(nibName: nil, bundle: nil)
+    // 1
+    let breedBrowseNavC = UINavigationController(rootViewController: BreedBrowseVC())
+    // 2
+    breedBrowseNavC.tabBarItem = UITabBarItem(title: MainTabBarVC.tabs[0], image: UIImage(named: MainTabBarVC.tabs[0]), selectedImage: nil)
+    // 3
+    let creditsVC = CreditsVC()
+    // 4
+    creditsVC.tabBarItem = UITabBarItem(title: MainTabBarVC.tabs[1], image: UIImage(named: MainTabBarVC.tabs[1]), selectedImage: nil)
+    //5
+    viewControllers = [breedBrowseNavC, creditsVC]
+  }
+
+  // 6
+  required init?(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
+```
+
+Here are some explanations of this file:
+
+// 0: This line is the "model" of the tab bar. This model could be fancier, perhaps a separate struct or class, but an array of tab names works fine in this app.
+
+// 1: This line create the left-hand `UIViewController`, a `BreedBrowseVC`, and embeds it in a `UINavigationController`, which is necessary because the user will drill down from this screen to a `BreedDetailVC` with information about a specific cat breed. If you needed custom `UINavigationController` behavior, you could use a subclass of that class.
+
+// 2: This line set the name, "Browse", and the icon, a sitting cat, of the `BreedBrowseVC`'s `UITabBarItem`.
+
+// 3: This line creates the right-hand `UIViewController`, a `CreditsVC`. There is no drill-down from credits, so there is no embedding in a `UINavigationController`.
+
+// 4: This line set the name, "Credits", and the icon, a jumping cat, of the `CreditsVC`'s `UITabBarItem`.
+
+// 5: This line tells the `UITabBarController` to manage the browse and credits `UIViewController`s.
+
+// 6: Swift's initializer rules require implementation of this initializer, but because you won't be using a storyboard, the initializer need not have a functional implementation. More details [here](https://stackoverflow.com/a/24036440).
+
+6\. Feel free to build, but _don't_ run. If you do, you will see a crash caused by the fact that `BreedBrowseVC`'s `UITableView` expects to be instantiated from a storyboard, which isn't happening. `CreditsVC`'s `UITextView` has a similar problem. For an initial fix, comment out the definition of `BreedBrowseVC`'s in `BreedBrowseVC.swift` and insert the following definition:
+
+```
+class BreedBrowseVC: UIViewController {
+  // 0
+  var breedBrowseView: BreedBrowseView {
+    return view as! BreedBrowseView
+  }
+
+  // 1
+  override func loadView() {
+    view = BreedBrowseView(frame: UIScreen.main.bounds)
+  }
+}
+```
+
+(Why comment out the previous definition and not replace it? As you are converting a real app, keeping the previous definition around as a reference is helpful as you implement the new definition.)
+
+When you use storyboards, the views of your `UIViewController`s often need not be custom `UIView` subclasses. Instead, you just set properties of the view in IB. But when you use the PL approach, making every `UIViewController`'s `view` property an instance of a custom `UIView` subclass is helpful because those `UIView`s need a lot of code to set up controls and Auto Layout constraints.
+
+Here are some explanations of this definition:
+
+// 0:
+
+As mentioned earlier, with the PL approach, `UIViewController`s own instances of named `UIView` subclasses as their `view` property. Giving this property an appropriately typed alias, in this case `breedBrowseView`, allows clean access to this named-subclass instance throughout the `UIViewController`. If you only referred to the instance by its `view` name/property, you would need to cast it to a `BreedBrowseView` every time you referred to `BreedBrowseView`-specific properties and methods.
+
+The use of force-unwrap here is controversial but carefully considered by the [author](https://twitter.com/vermont42) of this tutorial.
+
+// 1:
+
+`loadView()` is a `UIViewController`-lifecycle method. This is a method you may not have seen if you have been doing IB-based development. Why not? If you've been using IB, the runtime, not your code, has been responding to calls of this method. As the [documentation](https://developer.apple.com/documentation/uikit/uiviewcontroller/1621454-loadview) states,
+
+>The view controller calls this method when its view property is requested but is currently nil. This method loads or creates a view and assigns it to the view property.
+
+This implementation creates an instance of `BreedBrowseView` and assigns it to the `BreedBrowseVC`'s `view` property.
+
+7\. As mentioned earlier, using the PL approach, `BreedBrowseVC`'s `view` is an instance of a `UIView` subclass. This subclass needs a definition, so in the `Views` group, create a file called `BreedBrowseView.swift` and give it the following contents:
+
+```
+import UIKit
+
+class BreedBrowseView: UIView {
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+  }
+}
+```
+
+This tutorial will fill out this definition in a later step.
+
+8\. Continuing the fix for the runtime crash, comment out the definition of `CreditsVC`'s in `CreditsVC.swift` and insert the following definition:
+
+```
+class CreditsVC: UIViewController {
+  var creditsView: CreditsView {
+    return view as! CreditsView
+  }
+
+  override func loadView() {
+    view = CreditsView(frame: UIScreen.main.bounds)
+  }
+}
+```
+
+The explanation of `BreedBrowseVC`'s definition applies to this definition as well.
+
+9\. As in step 7, in the `Views` group, create a file called `CreditsView.swift` and give it the following contents:
+
+```
+import UIKit
+
+class CreditsView: UIView {
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+  }
+}
+```
+
+This tutorial will fill out this definition in a later step.
+
+Build and run. You now have a functional PL-based app!
+
+![Functional App](images/functionalApp.png "Functional PL-Based App")
