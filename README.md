@@ -57,7 +57,7 @@ The app is intended to be simple to understand, but here are some comments.
 
 * The app's color palette is from [Coolors](https://coolors.co). The author of this tutorial is not an artist, so he uses this website for suggestions of harmonious color palettes.
 
-* There are no custom UIView subclasses in the IB app, but this will change in the course of IB conversion.
+* There are no custom `UIView` subclasses in the IB app, but this will change in the course of IB conversion.
 
 
 3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard will serve as a reference as you create the views. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
