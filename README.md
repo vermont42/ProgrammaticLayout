@@ -107,7 +107,7 @@ class MainTabBarVC: UITabBarController {
 
   // 6
   required init?(coder aDecoder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+    fatalError("init(coder:) has not been implemented.")
   }
 }
 ```
@@ -171,7 +171,7 @@ import UIKit
 
 class BreedBrowseView: UIView {
   required init(coder aDecoder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+    fatalError("init(coder:) has not been implemented.")
   }
 
   override init(frame: CGRect) {
@@ -205,7 +205,7 @@ import UIKit
 
 class CreditsView: UIView {
   required init(coder aDecoder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+    fatalError("init(coder:) has not been implemented.")
   }
 
   override init(frame: CGRect) {
@@ -219,3 +219,56 @@ This tutorial will fill out this definition in a later step.
 Build and run. You now have a functional PL-based app!
 
 ![Functional App](images/functionalApp.png "Functional PL-Based App")
+
+10\. The next step is complete in the starter project, but, in general, the next step in the conversion of an app from IB to PL is to take an inventory of the colors currently being used in the storyboard and put them in a data structure that your UI code can use. In a production app, these colors, and their names, might be specified in a style guide from a designer. As noted earlier, the colors in this app are from Coolors. Take a look at `Colors.swift`, which contains the five Coolors colors. With respect to naming the colors, you can choose names that reflect the actual colors, as in this app. But you might also choose more-abstract names like `button`, `alert`, or `body`. More-abstract names have the advantage that they are not tied to particular RGB values and therefore remain useful if those RGB values change radically. The disadvantage is that, for example, if you want to use the `body` color for something that is not text body, you will need to make an alias of that color.
+
+11\. You may have noticed that the `Browse` tab lacks the original table of cats. The fix for this is to implement the view that holds this table. Replace the contents of `BreedBrowseView.swift` with the following:
+
+```
+class BreedBrowseView: UIView {
+  // 0
+  internal let table: UITableView = {
+    let table = UITableView()
+    // 1
+    table.backgroundColor = Colors.blackish
+    // 2
+    table.translatesAutoresizingMaskIntoConstraints = false
+    return table
+  } ()
+
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented.")
+  }
+
+  // 3
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    // 4
+    addSubview(table)
+    // 5
+    table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).isActive = true
+    table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+    table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+    table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).isActive = true
+  }
+
+  // 6
+  func setupTable(dataSource: UITableViewDataSource, delegate: UITableViewDelegate) {
+    table.dataSource = dataSource
+    table.delegate = delegate
+    table.register(BreedCell.self, forCellReuseIdentifier: "\(BreedCell.self)")
+  }
+
+  // 7
+  func reloadTableData() {
+    table.reloadData()
+    table.setContentOffset(CGPoint.zero, animated: false)
+  }
+}
+```
+
+Here are some explanations of this new code:
+
+// 0: Using the PL approach, controls within `UIView`s are properties of those `UIView`s. This particular `UIView` subclass has one control, a `UITableView`, and that gets defined and created here.
+
+// 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL. 
