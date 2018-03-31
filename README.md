@@ -1,12 +1,6 @@
 Programmatic-Layout Tutorial
 ============================
 
-### TODO
-
-Remove extraneous `import Foundation`s from starter project.
-
-Rename start app (but not repo) CatBreeds.
-
 ### Introduction
 
 This tutorial teaches programmatic layout (PL) by demonstrating conversion of an app's user interface (UI) from Interface Builder (IB) to PL.
@@ -271,4 +265,23 @@ Here are some explanations of this new code:
 
 // 0: Using the PL approach, controls within `UIView`s are properties of those `UIView`s. This particular `UIView` subclass has one control, a `UITableView`, and that gets defined and created here.
 
-// 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL. 
+// 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### TODO
+
+Remove extraneous `import Foundation`s from starter project.
+
+Rename start app (but not repo) CatBreeds.
