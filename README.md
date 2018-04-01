@@ -37,7 +37,7 @@ violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global ch
 
 ### Tutorial
 
-This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins now.
+This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins after the following disclaimer: The tutorial assumes working knowledge of iOS development with IB and, in particular, Auto Layout. Readers not in possession of that knowledge might find helpful [CS193P](https://www.youtube.com/watch?v=71pyOB4TPRE), which was the tutorial's author's entrée to iOS development.
 
 1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB).
 
@@ -53,7 +53,6 @@ The app is intended to be simple to understand, but here are some comments.
 
 * There are no custom `UIView` subclasses in the IB app, but this will change in the course of IB conversion.
 
-
 3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard will serve as a reference as you create the views. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
 
 As an aside, when this tutorial refers to a file in the project, the easiest way to find the file is to click the Project Navigator button in the top-left corner of Xcode and type the filename in the search bar, as shown in this screenshot.
@@ -61,7 +60,7 @@ As an aside, when this tutorial refers to a file in the project, the easiest way
 ![Files](images/files.png "Finding Files in the Project Navigator")
 
 
-4\. Resist temptation. Do not build _or_ run. The runtime no longer knows what UI to show, so running would be pointless. Instead, _tell_ the runtime what UI to show by adding the following line, just before the return statement, in `application(_: didFinishLaunchingWithOptions:)` in `AppDelegate.swift`:
+4\. Resist temptation. Do not build _or_ run. The runtime no longer knows what UI to show, so running would be pointless. Instead, _tell_ the runtime what UI to show by adding the following line, just before the `return`, in `application(_: didFinishLaunchingWithOptions:)` in `AppDelegate.swift`:
 
 ```
 window = UIWindow(frame: UIScreen.main.bounds)
@@ -265,16 +264,13 @@ Here are some explanations of this new code:
 
 // 0: Using the PL approach, controls within `UIView`s are properties of those `UIView`s. This particular `UIView` subclass has one control, a `UITableView`, and that gets defined and created here.
 
-// 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL.
+// 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL. If your designer decides to give `blackish` a slightly different RGB value, just change the definition of `blackish` in `Colors.swift`, and all controls using that color get the new RGB values. Using the IB approach, you would need to change that color _every_ place it appears in the storyboard.
 
+The preceding sentence was not entirely accurate. As of Xcode 9 and iOS 11, [named colors](https://medium.com/bobo-shone/how-to-use-named-color-in-xcode-9-d7149d270a16) are available, so storyboard colors need only be set once. There are no named fonts or named paddings, however, so fonts and paddings in IB still violate DRY. Examples of DRY fonts and paddings appear later in this tutorial.
 
+// 2: When you're using PL, you must set `translatesAutoresizingMaskIntoConstraints` to `false` for every control. If you don't, your view [won't appear](https://www.innoq.com/en/blog/ios-auto-layout-problem/). More explanation can be found [here](https://stackoverflow.com/a/47801753).
 
-
-
-
-
-
-
+// 3: In the PL approach, the `init()` function of `UIView` subclasses has two jobs: add controls it owns as subviews of itself and constrain these controls using Auto Layout or some other approach. More details below.
 
 
 
@@ -284,4 +280,4 @@ Here are some explanations of this new code:
 
 Remove extraneous `import Foundation`s from starter project.
 
-Rename start app (but not repo) CatBreeds.
+Rename starter app (but not repo) CatBreeds.
