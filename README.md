@@ -3,7 +3,7 @@ Programmatic-Layout Tutorial
 
 ### Introduction
 
-This tutorial teaches programmatic layout (PL) by demonstrating conversion of an app's user interface (UI) from Interface Builder (IB) to PL.
+This tutorial teaches programmatic layout (PL) by demonstrating conversion of an app's user interface (UI) from [Interface Builder](https://youtu.be/dl0CbKYUFTY) (IB) to PL.
 
 ### Definitions
 
@@ -20,7 +20,7 @@ Proponents of IB cite, _inter alia_, the following advantages:
 * Apple is promoting use of IB in WWDC sessions, suggesting that IB is more future-proof than PL. Future iOS features might not be available to PL developers in the same way that multitasking on iPad is not available to developers who have not adapted size classes.
 * Creating a UI in IB is faster and easier to iterate on. In concrete terms, dragging UI elements around a storyboard and fiddling with their properties until the UI takes useful shape is easy, but creating a UI in code without knowing ahead of time _exactly_ what form the UI should take is nigh-impossible. In practice, therefore, PL requires use of some other design tool, for example Sketch or a napkin.
 * An app that uses IB has fewer lines of Swift or Objective-C code than an identically functioning app that uses PL. [Less code is better.](https://blog.codinghorror.com/the-best-code-is-no-code-at-all/) There is an argument that the nuts and bolts of UI creation and layout are not central to an app’s functionality, so developers should offload those nuts and bolts, to the extent possible, to IB in the same way that developers sometimes offload creation and maintenance of their object graphs to CoreData.
-* Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the author of this tutorial was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
+* Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the author of this tutorial (the Author) was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
 
 Proponents of PL cite, _inter alia_, the following disadvantages of IB:
 * Using IB does mean less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
@@ -49,7 +49,7 @@ The app is intended to be simple to understand, but here are some comments.
 * There is, [on information and belief](https://dictionary.law.com/Default.aspx?selected=954), no way to set tab- or navigation-bar fonts in IB, so the app uses an app-delegate-initiated approach from StackOverflow.
 * App-and-button icons are from [The Noun Project](https://thenounproject.com). Consider using this website if you need professional-grade icons but do not have the skill to make them or the budget to commission them.
 
-* The app's color palette is from [Coolors](https://coolors.co). The author of this tutorial is not an artist, so he uses this website for suggestions of harmonious color palettes.
+* The app's color palette is from [Coolors](https://coolors.co). The Author is not an artist, so he uses this website for suggestions of harmonious color palettes.
 
 * There are no custom `UIView` subclasses in the IB app, but this will change in the course of IB conversion.
 
@@ -173,7 +173,7 @@ class BreedBrowseView: UIView {
 }
 ```
 
-This tutorial will fill out this definition in a later step.
+This tutorial will fill out this definition in a later Step.
 
 8\. Continuing the fix for the runtime crash, comment out the definition of `CreditsVC`'s in `CreditsVC.swift` and insert the following definition:
 
@@ -191,7 +191,7 @@ class CreditsVC: UIViewController {
 
 The explanation of `BreedBrowseVC`'s definition applies to this definition as well.
 
-9\. As in step 7, in the `Views` group, create a file called `CreditsView.swift` and give it the following contents:
+9\. As in Step 7, in the `Views` group, create a file called `CreditsView.swift` and give it the following contents:
 
 ```
 import UIKit
@@ -207,7 +207,7 @@ class CreditsView: UIView {
 }
 ```
 
-This tutorial will fill out this definition in a later step.
+This tutorial will fill out this definition in a later Step.
 
 Build and run. You now have a functional PL-based app!
 
@@ -251,18 +251,14 @@ class BreedBrowseView: UIView {
     table.delegate = delegate
     table.register(BreedCell.self, forCellReuseIdentifier: "\(BreedCell.self)")
   }
-
-  // 7
-  func reloadTableData() {
-    table.reloadData()
-    table.setContentOffset(CGPoint.zero, animated: false)
-  }
 }
 ```
 
 Here are some explanations of this new code:
 
 // 0: Using the PL approach, controls within `UIView`s are properties of those `UIView`s. This particular `UIView` subclass has one control, a `UITableView`, and that gets defined and created here.
+
+When defining controls like `table`, the question of access level arises. `private` works if no other class needs access to the control. `internal` is appropriate in cases like this where another class, `BreedBrowseVC`, needs access to the control. Later Steps show examples of `private` controls.
 
 // 1: This line shows the [DRY](http://deviq.com/don-t-repeat-yourself/) power of PL. If your designer decides to give `blackish` a slightly different RGB value, just change the definition of `blackish` in `Colors.swift`, and all controls using that color get the new RGB values. Using the IB approach, you would need to change that color _every_ place it appears in the storyboard.
 
@@ -272,9 +268,78 @@ The preceding sentence was not entirely accurate. As of Xcode 9 and iOS 11, [nam
 
 // 3: In the PL approach, the `init()` function of `UIView` subclasses has two jobs: add controls it owns as subviews of itself and constrain these controls using Auto Layout or some other approach. More details below.
 
+// 4: This line is self-explanatory but critical.
 
+// 5: This section of `init()` constrains the `UIView`'s controls, in this case just `table`. There are many approaches to coding Auto Layout constraints. This app uses [NSLayoutAnchor](https://developer.apple.com/documentation/uikit/nslayoutanchor). Sticking with first-party solutions, you could use [NSLayoutConstraint](https://developer.apple.com/documentation/uikit/nslayoutconstraint) or [Visual Format Language](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html) (VFL). The Author avoids `NSLayoutConstraint` because the API is verbose and error-prone. He avoid VFL because its use of `String`s is error-prone and does not leverage type-checking to catch programmer errors.
 
+Paul Hudson has [written up](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout) five third-party Auto Layout alternatives. The Author confirms, based on experience, that one of them, [SnapKit](https://github.com/SnapKit/SnapKit), is highly functional and intuitive. He does not use it currently, however, for four reasons:
+1.  `NSLayoutAnchor` works for his needs.
+2. He finds `NSLayoutAnchor`'s' API pleasant with an addition discuss in Step 12.
+3. He prefers to avoid third-party dependencies when possible.
+4. When problems occur in development with wrapped APIs, including the Auto Layout APIs, wrappers make errors more difficult to diagnose and fix.
 
+A full-blown explanation of `NSLayoutConstraint` is beyond the scope of tutorial, but an overview discussion follows.
+
+All `UIView`s, including the containing view, have top, bottom, leading, trailing, and center anchors. The approach is to pin anchors of `UIView`s to the anchors of other `UIView`s, optionally with constant space between anchors.
+
+The containing view's anchors are accessed via two properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins.". This property does not entirely encompass the concept of the space where user-visible controls should go because the top and bottom of the containing view are often hidden by a `UINavigationBar` or `UITabBar`, respectively. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
+
+// 6: This code could go in `BreedBrowseVC`, but bundling it here is tidier.
+
+12\. There are two annoying aspects to the Auto Layout code in the preceding Step. First, `translatesAutoresizingMaskIntoConstraints = false`, though necessary, is head-scratchy and hard-to-remember. Second, the syntax `.isActive = true` is awkward. Doug Suriano helpfully [provides](https://youtu.be/DmpoiN-SVds) fixes for both in the forms of extensions on `UIView` and `NSLayoutConstraint`.
+
+In the `Misc` group, create a file called `UIViewExtension.swift` and give it the following contents:
+
+```
+import UIKit
+
+extension UIView {
+  func enableAutoLayout() {
+    translatesAutoresizingMaskIntoConstraints = false
+  }
+}
+```
+
+Also in the `Misc` group, create a file called `NSLayoutConstraintExtension.swift` and give it the following contents:
+
+```
+import UIKit
+
+extension NSLayoutConstraint {
+  @discardableResult func activate() -> NSLayoutConstraint {
+    isActive = true
+    return self
+  }
+}
+```
+
+These two extensions provide cleaner ways to enable Auto Layout and activate constraints. How, you ask? In `BreedBrowseView.swift`, replace the definition of `table` with the following:
+
+```
+  internal let table: UITableView = {
+    let table = UITableView()
+    table.backgroundColor = Colors.blackish
+    table.enableAutoLayout()
+    return table
+  } ()
+```
+
+Replace the overridden `init()` with the following:
+
+```
+override init(frame: CGRect) {
+  super.init(frame: frame)
+  addSubview(table)
+  table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
+  table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+  table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+  table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
+}
+```
+
+Cleaner, no?
+
+13\. TODO: Modify BreedBrowseVC to create BreedBrowseView instance and set its delegate/datasource.
 
 ### TODO
 
