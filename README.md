@@ -457,6 +457,18 @@ Build _and_ run. You now have a cat table made with PL!
 
 ![Cat Table](images/catTable.png "Cat Table Built with Programmatic Layout")
 
+
+17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the name label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
+
+```
+import UIKit
+
+struct Padding {
+  static let standard: CGFloat = 8.0
+}
+```
+
+In `BreedCell.swift`, change the `8.0` in `BreedCell.init()` to `Padding.standard`. Buh-bye, magic number.
 ### TODO
 
 Remove extraneous `import Foundation`s from starter project.
