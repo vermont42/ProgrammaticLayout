@@ -240,8 +240,8 @@ class BreedBrowseView: UIView {
     addSubview(table)
     // 5
     table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).isActive = true
-    table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-    table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+    table.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+    table.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
     table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).isActive = true
   }
 
@@ -273,7 +273,7 @@ The preceding sentence was not entirely accurate. As of Xcode 9 and iOS 11, [nam
 // 5: This section of `init()` constrains the `UIView`'s controls, in this case just `table`. There are many approaches to coding Auto Layout constraints. This app uses [NSLayoutAnchor](https://developer.apple.com/documentation/uikit/nslayoutanchor). Sticking with first-party solutions, you could use [NSLayoutConstraint](https://developer.apple.com/documentation/uikit/nslayoutconstraint) or [Visual Format Language](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html) (VFL). The Author avoids `NSLayoutConstraint` because the API is verbose and error-prone. He avoid VFL because its use of `String`s is error-prone and does not leverage type-checking to catch programmer errors.
 
 Paul Hudson has [written up](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout) five third-party Auto Layout alternatives. The Author confirms, based on experience, that one of them, [SnapKit](https://github.com/SnapKit/SnapKit), is highly functional and intuitive. He does not use it currently, however, for four reasons:
-1.  `NSLayoutAnchor` works for his needs.
+1. `NSLayoutAnchor` works for his needs.
 2. He finds `NSLayoutAnchor`'s' API pleasant with an addition discuss in Step 12.
 3. He prefers to avoid third-party dependencies when possible.
 4. When problems occur in development with wrapped APIs, including the Auto Layout APIs, wrappers make errors more difficult to diagnose and fix.
@@ -282,7 +282,9 @@ A full-blown explanation of `NSLayoutConstraint` is beyond the scope of tutorial
 
 All `UIView`s, including the containing view, have top, bottom, leading, trailing, and center anchors. The approach is to pin anchors of `UIView`s to the anchors of other `UIView`s, optionally with constant space between anchors.
 
-The containing view's anchors are accessed via two properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins.". This property does not entirely encompass the concept of the space where user-visible controls should go because the top and bottom of the containing view are often hidden by a `UINavigationBar` or `UITabBar`, respectively. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
+The containing view's anchors, for example `.leadingAnchor` and `.centerYAnchor`, can be accessed directly. Views have two additional properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins". Because content can be inside the margins but hidden behind a `UITabBar` or `UINavigationBar`, this property does not entirely encompass the concept of the space where user-visible controls should go. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
+
+In the code you pasted, the goal is for the content, the cat table, to extend to the left and right edges of the screen, so the code uses `leadingAnchor` and `trailingAnchor` rather than `layoutMarginsGuide.leadingAnchor` and `layoutMarginsGuide.trailingAnchor`. The cat table should _not_ be hidden behind a `UINavigationBar` or `UITabBar`, however, so the code pins the top and bottom of the cat table to `safeAreaLayoutGuide.topAnchor` and `safeAreaLayoutGuide.bottomAnchor`, respectively.
 
 // 6: This code could go in `BreedBrowseVC`, but bundling it here is tidier.
 
@@ -313,15 +315,17 @@ extension NSLayoutConstraint {
 }
 ```
 
-These two extensions provide cleaner ways to enable Auto Layout and activate constraints. How, you ask? In `BreedBrowseView.swift`, replace the definition of `table` with the following:
+These two extensions provide cleaner ways to enable Auto Layout and activate constraints. How, you ask? In `BreedBrowseView.swift`, replace the line
 
 ```
-  internal let table: UITableView = {
-    let table = UITableView()
-    table.backgroundColor = Colors.blackish
-    table.enableAutoLayout()
-    return table
-  } ()
+table.translatesAutoresizingMaskIntoConstraints = false
+```
+
+with
+
+```
+table.enableAutoLayout()
+
 ```
 
 Replace the overridden `init()` with the following:
@@ -331,15 +335,127 @@ override init(frame: CGRect) {
   super.init(frame: frame)
   addSubview(table)
   table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
-  table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
-  table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+  table.leadingAnchor.constraint(equalTo: leadingAnchor).activate()
+  table.trailingAnchor.constraint(equalTo: trailingAnchor).activate()
   table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
 }
 ```
 
 Cleaner, no?
 
-13\. TODO: Modify BreedBrowseVC to create BreedBrowseView instance and set its delegate/datasource.
+Build and run. You now have a table built with PL!
+
+![Empty Table](images/emptyTable.png "Empty Table Built with Programmatic Layout")
+
+13\. You may have noticed that the cat table is sadly devoid of cats. To fix this, enhancements to `BreedBrowseVC` and `BreedCell` are required.
+
+Open `BreedBrowseVC.swift`. To restore the screen's title, add the following line to the end of `loadView()`:
+
+```
+title = "Browse"
+```
+
+Like most `UIViewController`s, `BreedBrowseVC` needs a model, so add the following line to the top of the definition of `BreedBrowseVC`:
+
+```
+private let breeds = Breeds()
+```
+
+The cat table needs data, so change the first line of `BreedBrowseVC`'s definition to the following:
+
+```
+class BreedBrowseVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
+```
+
+As an aside, the Author recognizes, past practice [notwithstanding](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/RunDetailsVC.swift), that, in production apps, the implementation by `UIViewController`s of `UIKit` protocols may cause code bloat.
+
+To fix the compilation errors, add to `BreedBrowseVC`'s definition the following implementations of the protocols:
+
+```
+func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+  return breeds.breedCount
+}
+
+func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+  let cell = breedBrowseView.table.dequeueReusableCell(withIdentifier: "\(BreedCell.self)") as! BreedCell
+  let breed = breeds.breedAtIndex(indexPath.row)
+  cell.configure(name: breed.name, photo: breed.photo)
+  return cell
+}
+```
+
+This is an example of why, when converting an app from IB to PL, the developer should initially comment out, not delete, code. The code above is identical to the IB-based code except for the fact that `table` is now owned by `breedBrowseView`, not implicit `self`.
+
+14\. In order to populate the cat table, add the following line to the end of `BreedBrowseVC.loadView()`:
+
+```
+breedBrowseView.setupTable(dataSource: self, delegate: self)
+```
+
+15\. Feel free to build, but _don't_ run. If you do, a fatal error will occur in `BreedCell.swift` because there are outlets between `BreedCell` and the unused storyboard. Fatal error aside, there are no auto layout constraints on this view. Replace the definition of `BreedCell` with the following:
+
+```
+class BreedCell: UITableViewCell {
+  private var photo: UIImageView = {
+    let photo = UIImageView()
+    photo.contentMode = .scaleAspectFit
+    photo.enableAutoLayout()
+    return photo
+  } ()
+
+  private var name: UILabel = {
+    let name = UILabel()
+    name.textColor = Colors.white
+    name.font = Fonts.body
+    name.enableAutoLayout()
+    return name
+  } ()
+
+  // 0
+  internal static let thumbnailHeightWidth: CGFloat = 58.0
+
+  required init?(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented.")
+  }
+
+  override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    super.init(style: style, reuseIdentifier: reuseIdentifier)
+    backgroundColor = Colors.blackish
+    addSubview(photo)
+    addSubview(name)
+    // 1
+    photo.centerYAnchor.constraint(equalTo: centerYAnchor).activate()
+    photo.leadingAnchor.constraint(equalTo: leadingAnchor).activate()
+    photo.heightAnchor.constraint(equalToConstant: BreedCell.thumbnailHeightWidth).activate()
+    photo.widthAnchor.constraint(equalToConstant: BreedCell.thumbnailHeightWidth).activate()
+    name.leadingAnchor.constraint(equalTo: photo.trailingAnchor, constant: 8.0).activate()
+    name.centerYAnchor.constraint(equalTo: centerYAnchor).activate()
+  }
+
+  internal func configure(name: String, photo: UIImage) {
+    self.name.text = name
+    self.photo.image = photo
+  }
+}
+```
+
+The structure of this code should be familiar from `BreedBrowseView`, but here are some comments:
+
+// 0: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
+
+// 1: This Auto Layout code demonstrates three new constraints: `height`, `width`, and `centerYAnchor`. The Author hopes you agree that use of this API is self-documenting.
+
+16\. The table's rows currently have a default height, not the appropriate height based on the height of the cat thumbnails. To fix this, add the following implementation to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`:
+
+```
+func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+  return BreedCell.thumbnailHeightWidth
+}
+```
+
+Build _and_ run. You now have a cat table made with PL!
+
+![Cat Table](images/catTable.png "Cat Table Built with Programmatic Layout")
 
 ### TODO
 
