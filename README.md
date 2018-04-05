@@ -469,6 +469,87 @@ struct Padding {
 ```
 
 In `BreedCell.swift`, change the `8.0` in `BreedCell.init()` to `Padding.standard`. Buh-bye, magic number.
+
+18\. The IB-based version of the app allowed the user to tap a row in the cat table and see a large photo and description of that breed. Time to implement that.
+
+The IB-based app did not use a named `UIView` subclass for displaying breed details, but the PL-based app _must_ have one. In the `Views` group, create a file called `BreedDetailView` with the following contents:
+
+```
+import UIKit
+
+class BreedDetailView: UIView {
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented.")
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+  }
+}
+```
+
+19\.
+
+`BreedDetailVC` currently assumes that that it's be instantiated from a storyboard, so in `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following:
+
+```
+class BreedDetailVC: UIViewController, UITextViewDelegate {
+  private var breed: Breed!
+
+  var breedDetailView: BreedDetailView {
+    return view as! BreedDetailView
+  }
+
+  override func loadView() {
+    view = BreedDetailView(frame: UIScreen.main.bounds)
+    title = breed.name
+  }
+
+  // 0
+  class func getViewController(breed: Breed) -> BreedDetailVC {
+    let breedDetailVC = BreedDetailVC()
+    breedDetailVC.breed = breed
+    return breedDetailVC
+  }
+}
+```
+
+This code is similar to that of other `UIViewController` subclasses discussed, with the following exception:
+
+// 0: This function is a clean way for clients to instantiate a `BreedDetailVC` with precisely the model data it needs, an instance of `Breed`. Clients could initialize `BreedDetailVC` directly, but if they did, they would have to remember to set the `breed` property, which would need to be `internal` rather than `private`. In this situation, the instance of `BreedDetailVC` would be in an unusable state until clients set the value of the `breed` property.
+
+The benefit of the approach used here becomes even more apparent when `UIViewController` subclasses have many properties that need to be set. Because of autocompletion of `getViewController()`, clients never forget to provide appropriate values.
+
+20\. To allow the transition from `BreedViewVC` to `BreedDetailVC`, in `BreedBrowseVC.swift`, add the following to the definition of `BreedBrowseVC`:
+
+```
+func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+  tableView.deselectRow(at: indexPath, animated: false)
+  let breedDetailVC = BreedDetailVC.getViewController(breed: breeds.breedAtIndex(indexPath.row))
+  navigationController?.pushViewController(breedDetailVC, animated: true)
+}
+```
+
+Build and run. Click a row in the cat table. The app transitions to an empty screen about that breed.
+
+![Empty Breed Screen](images/emptyBreed.png "Empty Breed Screen")
+
+21\. You may notice that the transition to the `BreedDetailVC` is choppy. The author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
+
+```
+override func viewWillAppear(_ animated: Bool) {
+  super.viewWillAppear(animated)
+  breedBrowseView.isHidden = false
+}
+```
+
+In the function `tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)`, just before the line `navigationController?.pushViewController(...)`, add the following line:
+
+```
+breedBrowseView.isHidden = true
+```
+
+This fixes the choppiness. If you have a better solution for this, please contact the Author.
 ### TODO
 
 Remove extraneous `import Foundation`s from starter project.
