@@ -23,28 +23,28 @@ Proponents of IB cite, _inter alia_, the following advantages:
 * Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the [author](https://twitter.com/vermont42) of this tutorial (the Author) was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
 
 Proponents of PL cite, _inter alia_, the following disadvantages of IB:
-* Using IB does mean less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
-* IB's XML format is subject to change between Xcode versions. Changes in format can cause warnings that the developer has to fix. [Two](https://itunes.apple.com/us/app/immigration/id777319358) [apps](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) developed by this tutorial's author experienced these warnings, examples of which appear in the following screenshot.
+* Using IB result in less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
+* IB's XML format is subject to change between Xcode versions. Changes in format can cause warnings that the developer has to fix. [Two](https://itunes.apple.com/us/app/immigration/id777319358) [apps](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) developed by the Author experienced these warnings, examples of which appear in the following screenshot.
 
 ![Warnings](images/warnings.jpg "Warnings Caused by XIB-Format Change")
 
 * Because the IB file format is not backwards-compatible, old storyboards and XIBs cannot even be opened in newer versions of Xcode, a situation described [here](http://www.lapcatsoftware.com/articles/working-without-a-nib-part-11.html). UIs created in IB are, in that sense, ticking time-bombs. As Swift evolves, old PL code may not compile, but it can always be opened in Xcode and grokked by the developer.
-* IB hides implementation details from the iOS-development-learner. For example, an IB learner learning about tab bars might learn to click a view controller in the storyboard and click Editor -> Embed In -> Tab Bar Controller. The learner might not realize that a `UITabBarController` gets instantiated at runtime. A PL learner learning about tab bars can't avoid instantiating `UITabBarController` explicitly. The PL approach therefore fosters deeper understanding of UIKit.
-* By requiring the developer to set, by hand, the value of every color, font, padding, and constraint constant, the IB approach
+* IB hides implementation details from the iOS-development-learner. For example, an IB learner learning about tab bars might learn to click a view controller in the storyboard and click Editor -> Embed In -> Tab Bar Controller. The learner might not realize that a `UITabBarController` gets instantiated at runtime. A PL learner learning about tab bars can't avoid instantiating `UITabBarController` explicitly. The PL approach therefore fosters deeper understanding of `UIKit`.
+* By requiring the developer to set, by hand, the value of every color, font, padding, and constraint, the IB approach
 violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global changes to colors, fonts, paddings, and constraint constants are tedious and error-prone. With the PL approach, these values are set once in code and are easy to change globally.
 * As in [quantum theory](https://www.sciencedaily.com/releases/1998/02/980227055013.htm), the act of observing a storyboard or XIB affects its reality. That is to say, opening a storyboard or XIB in IB "dirties" the underlying file, a change picked up by source control unless discarded. In a world where reviewers of pull requests rightfully expect every commit in a pull request to reflect developer intent, these no-op changes are problematic.
-* Finally, the inscrutable nature of XIB and storyboard files makes resolving merge conflicts in a team environment challenging. Admittedly, these conflicts can be minimized, but not eliminated, by putting each view controller in its own storyboard.
+* Finally, the inscrutable nature of XIB and storyboard files makes resolving merge conflicts in a team environment challenging. Admittedly, these conflicts can be minimized, but not eliminated, by putting each `UIViewController`'s visual representation in its own storyboard.
 
 ### Tutorial
 
-This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins after the following disclaimer: The tutorial assumes working knowledge of iOS development with IB and, in particular, Auto Layout. Readers not in possession of that knowledge might find helpful [CS193P](https://www.youtube.com/watch?v=71pyOB4TPRE), which was the tutorial's author's entrée to iOS development.
+This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins after the following disclaimer: The tutorial assumes working knowledge of iOS development with IB and, in particular, Auto Layout. Readers not in possession of that knowledge might find helpful [CS193P](https://www.youtube.com/watch?v=71pyOB4TPRE), which was the Author's entrée to iOS development.
 
 1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB). Explore cat breeds.
 
 2\. Poke around the code and storyboard. The app is intended to be simple enough to grok without much effort but complicated enough to demonstrate various PL techniques. Here are some comments on the implementation.
 
-* There is no way to edit attributed strings in IB, so the app uses a sort of Markdown-lite that allows different formatting for headings, subheadings, and URLs. See `StringExtensions.swift` and `Credits.swift` for implementation and use, respectively. This technique, developed for [RaceRunner](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) and used by [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467), works well in this and other simple use cases despite not providing the full power of Markdown.
-* There is, [on information and belief](https://dictionary.law.com/Default.aspx?selected=954), no way to set tab- or navigation-bar fonts in IB, so the app uses an app-delegate-initiated approach from StackOverflow.
+* There is no way to edit attributed strings in IB, so for the credits screen, the app uses a sort of Markdown-lite that allows different formatting for headings and subheadings. See `StringExtensions.swift` and `Credits.swift` for implementation and use, respectively. This technique, developed for [RaceRunner](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) and used by [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467), works well in this and other simple use cases despite not providing the full power of Markdown.
+* There is, [on information and belief](https://dictionary.law.com/Default.aspx?selected=954), no way to set tab- or navigation-bar fonts in IB, so the app uses an app-delegate-initiated approach.
 * App-and-button icons are from [The Noun Project](https://thenounproject.com). Consider using this website if you need professional-grade icons but do not have the skill to make them or the budget to commission them.
 * The app's color palette is from [Coolors](https://coolors.co). The Author is not an artist, so he uses this website for suggestions of harmonious color palettes.
 
@@ -68,7 +68,7 @@ The purpose of this code is to make an instance of `MainTabBarVC` the root of th
 
 5\. Note the compilation error `Use of unresolved identifier 'MainTabBarVC'`. This error occurs because in the IB-based app, the storyboard specified a non-subclassed instance of `UITabBarController` as the root of the app's UI, but the PL-based app will use a named subclass, `MainTabBarController`, of `UITabBarController`, and you need to create that subclass. Why a named subclass? The named subclass will have business logic about what tabs to create, what to name them, and what icons to use for them.
 
-Before you do that, here is an aside about roots and navigation. The root of an app's UI depends on how navigation works in that app. A single-screen app would have a `UIViewController` subclass as its root. A single-screen app that uses a `UINavigationController` would have have a `UINavigationController` as its root. This object would own the app's primary `UIViewController`. An app whose navigation is based on a third-party hamburger menu like [SideMenu](https://github.com/jonkykong/SideMenu) would have, as its root, a `UIViewController` subclass that sets up the hamburger menu.
+Before you do that, enjoy this aside about roots and navigation. The root of an app's UI depends on how navigation works in that app. A single-screen app would have a `UIViewController` subclass as its root. A single-screen app that uses a `UINavigationController` would have have a `UINavigationController` as its root. This object would own the app's primary `UIViewController`. An app whose navigation is based on a third-party hamburger menu like [SideMenu](https://github.com/jonkykong/SideMenu) would have, as its root, a `UIViewController` subclass that sets up the hamburger menu.
 
 Back to the custom `UITabBarController` subclass. In the group `ViewControllers`, create an empty file called `MainTabBarVC.swift`. Paste the following code into it:
 
@@ -102,7 +102,7 @@ class MainTabBarVC: UITabBarController {
 
 Here are some explanations of this file:
 
-// 0: This line is the "model" of the tab bar. This model could be fancier, perhaps a separate struct or class, but an array of tab names works fine in this app.
+// 0: This line is the model of the tab bar. This model could be fancier, perhaps a separate struct or class, but an array of tab names works fine in this app.
 
 // 1: This line creates the left-hand `UIViewController`, a `BreedBrowseVC`, and embeds it in a `UINavigationController`, which is necessary because the user will drill down from this screen to a `BreedDetailVC` for information about a specific cat breed. If you needed to customize `UINavigationController`'s behavior, you could use a subclass of that class.
 
@@ -182,7 +182,7 @@ class CreditsVC: UIViewController {
 
 The explanation of `BreedBrowseVC`'s definition applies to this definition as well.
 
-9\. As in Step 7, in the `Views` group, create a file called `CreditsView.swift` and give it the following contents:
+9\. In the `Views` group, create a file called `CreditsView.swift` and give it the following contents:
 
 ```
 import UIKit
@@ -204,7 +204,9 @@ Build and run. You now have a functional PL-based app!
 
 ![Functional App](images/functionalApp.png "Functional PL-Based App")
 
-10\. The next step is complete in the starter project, but, in general, the next step in the conversion of any app from IB to PL is to inventory the colors currently being used in the storyboard and put them in a data structure that your UI code can use. In a production app, these colors, and their names, might be specified in a style guide from a designer. As noted earlier, the colors in this app are from Coolors. Take a look at `Colors.swift`, which contains the five Coolors colors. With respect to naming the colors, you can choose names that reflect the actual colors, as in this app. But you might also choose more-abstract names like `button`, `alert`, or `body`. More-abstract names have the advantage that they are not tied to particular RGB values and therefore remain useful if those RGB values change radically. The disadvantage is that, for example, if you want to use the `body` color for something that is not text body, you will need to make an alias of that color.
+10\. The next step is complete in the starter project, but, in general, the next step in the conversion of any app from IB to PL is to inventory the colors currently being used in the storyboard and put them in a data structure that your UI code can use. In a production app, these colors, and their names, might be specified in a style guide from a designer. As noted earlier, the colors in this app are from Coolors. Take a look at `Colors.swift`, which contains the five Coolors colors.
+
+With respect to naming the colors, here are two possible approaches. You can choose names that reflect the actual colors, as in this app. But you might also choose more-abstract names like `button`, `alert`, or `body`. More-abstract names have the advantage that they are not tied to particular RGB values and therefore remain useful if those RGB values change radically. The disadvantage is that, for example, if you want to use the `body` color for something that is not text body, you will need to make an alias of that color.
 
 11\. You may have noticed that the `Browse` tab lacks the original table of cat breeds. The fix for this is to implement the view that holds this table. In `BreedBrowseView.swift`, replace the definition of `BreedBrowseView` with the following:
 
@@ -258,23 +260,23 @@ The preceding sentence was not entirely accurate. As of Xcode 9 and iOS 11, [nam
 
 // 2: When you're using PL, you must set `translatesAutoresizingMaskIntoConstraints` to `false` for every control. If you don't, your view [won't appear](https://www.innoq.com/en/blog/ios-auto-layout-problem/). More explanation can be found [here](https://stackoverflow.com/a/47801753).
 
-// 3: In the PL approach, the `init()` function of `UIView` subclasses has two jobs: add controls it owns as subviews of itself and constrain these controls using Auto Layout or some other approach. More details below.
+// 3: In the PL approach, the `init()` function of a `UIView` subclass has two jobs: add controls it owns as subviews of itself and constrain these controls using Auto Layout or some other approach. More details below.
 
 // 4: This line is self-explanatory but critical.
 
-// 5: This section of `init()` constrains the `UIView`'s controls, in this case just `table`. There are many approaches to coding Auto Layout constraints. This app uses [NSLayoutAnchor](https://developer.apple.com/documentation/uikit/nslayoutanchor). Sticking with first-party solutions, you could use [NSLayoutConstraint](https://developer.apple.com/documentation/uikit/nslayoutconstraint) or [Visual Format Language](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html) (VFL). The Author avoids `NSLayoutConstraint` because the API is verbose and error-prone. He avoid VFL because its use of `String`s is error-prone and does not leverage type-checking to catch programmer errors.
+// 5: This section of `init()` constrains the `UIView`'s controls, in this case just `table`. There are many approaches to coding Auto Layout constraints. This app uses [NSLayoutAnchor](https://developer.apple.com/documentation/uikit/nslayoutanchor). Sticking with first-party solutions, you could also use [NSLayoutConstraint](https://developer.apple.com/documentation/uikit/nslayoutconstraint) or [Visual Format Language](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html) (VFL). The Author avoids `NSLayoutConstraint` because the API is verbose and error-prone. He avoid VFL because its use of `String`s is error-prone and does not leverage type-checking to catch programmer errors.
 
 Paul Hudson has [written up](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout) five third-party Auto Layout alternatives. The Author confirms, based on experience, that one of them, [SnapKit](https://github.com/SnapKit/SnapKit), is highly functional and intuitive. He does not use it currently, however, for four reasons:
 1. `NSLayoutAnchor` works for his needs.
-2. He finds `NSLayoutAnchor`'s' API pleasant with an addition discuss in Step 12.
+2. He finds `NSLayoutAnchor`'s API pleasant with an addition discussed in Step 12.
 3. He prefers to avoid third-party dependencies when possible.
 4. When problems occur in development with wrapped APIs, including the Auto Layout APIs, wrappers make errors more difficult to diagnose and fix.
 
-A full-blown explanation of `NSLayoutConstraint` is beyond the scope of tutorial, but an overview discussion follows.
+A full-blown explanation of `NSLayoutAnchor` is beyond the scope of tutorial, but an overview discussion follows.
 
 All `UIView`s, including the containing view, have top, bottom, leading, trailing, and center anchors. The approach is to pin anchors of `UIView`s to the anchors of other `UIView`s, optionally with constant space between anchors.
 
-The containing view's anchors, for example `.leadingAnchor` and `.centerYAnchor`, can be accessed directly. Views have two additional properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins". Because content can be inside the margins but hidden behind a `UITabBar` or `UINavigationBar`, this property does not entirely encompass the concept of the space where user-visible controls should go. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
+The containing `UIView`'s anchors, for example `.leadingAnchor` and `.centerYAnchor`, can be accessed directly. The content `UIView`s of `UIViewController`s have two additional properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins". Because content can be inside the margins but hidden behind a `UITabBar` or `UINavigationBar`, this property does not entirely encompass the concept of the space where user-visible controls should go. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
 
 In the code you pasted, the goal is for the content, the cat table, to extend to the left and right margins, so the code uses `layoutMarginsGuide.leadingAnchor` and `layoutMarginsGuide.trailingAnchor`. The cat table should _not_ be hidden behind a `UINavigationBar` or `UITabBar`, however, so the code pins the top and bottom of the cat table to `safeAreaLayoutGuide.topAnchor` and `safeAreaLayoutGuide.bottomAnchor`, respectively.
 
@@ -335,7 +337,7 @@ override init(frame: CGRect) {
 
 Cleaner, no?
 
-Build and run. You now have a table built with PL!
+Build and run. You now have a `UITableView` built with PL!
 
 ![Empty Table](images/emptyTable.png "Empty Table Built with Programmatic Layout")
 
@@ -359,7 +361,7 @@ The cat table needs data, so change the first line of `BreedBrowseVC`'s definiti
 class BreedBrowseVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
 ```
 
-As an aside, the Author recognizes, past practice [notwithstanding](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/RunDetailsVC.swift), that, in production apps, the implementation by `UIViewController`s of `UIKit` protocols may cause code bloat.
+As an aside, the Author recognizes, past practice [notwithstanding](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/RunDetailsVC.swift), that, in production apps, the implementation by `UIViewController`s of many `UIKit` protocols may cause code bloat.
 
 To fix the compilation errors, add to `BreedBrowseVC`'s definition the following implementations of the protocols:
 
@@ -376,7 +378,7 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
 }
 ```
 
-This is an example of why, when converting an app from IB to PL, the developer should initially comment out, not delete, code. The code above is identical to the IB-based code except for the fact that `table` is now owned by `breedBrowseView`, not implicit `self`.
+This is an example of why, when converting an app from IB to PL, the developer should initially comment out, not delete, code. The code above is identical to the IB-based code except for the fact that `table` is now owned by `breedBrowseView`, not `self`.
 
 14\. In order to populate the cat table, add the following line to the end of `BreedBrowseVC.loadView()`:
 
@@ -384,7 +386,7 @@ This is an example of why, when converting an app from IB to PL, the developer s
 breedBrowseView.setupTable(dataSource: self, delegate: self)
 ```
 
-15\. Feel free to build, but _don't_ run. If you do, a fatal error will occur in `BreedCell.swift` because there are outlets between `BreedCell` and the unused storyboard. Fatal error aside, there are no auto layout constraints on this view. Replace the definition of `BreedCell` with the following:
+15\. Feel free to build, but _don't_ run. If you do, a fatal error will occur in `BreedCell.swift` because there are outlets between `BreedCell` and the unused storyboard. Fatal error aside, there are no Auto Layout constraints on this view. Replace the definition of `BreedCell` with the following:
 
 ```
 class BreedCell: UITableViewCell {
@@ -438,7 +440,7 @@ The structure of this code should be familiar from `BreedBrowseView`, but here a
 
 // 1: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
 
-// 2: This Auto Layout code demonstrates three new constraints: `height`, `width`, and `centerYAnchor`. The Author hopes you agree that use of this API is self-documenting.
+// 2: This Auto Layout code demonstrates three new types of anchors: `heightAnchor`, `widthAnchor`, and `centerYAnchor`. The Author hopes you find these usages pellucid.
 
 16\. The table's rows currently have a default height, not the appropriate height based on the height of the cat thumbnails. To fix this, add the following implementation to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`:
 
@@ -453,7 +455,7 @@ Build _and_ run. You now have a cat table made with PL!
 ![Cat Table](images/catTable.png "Cat Table Built with Programmatic Layout")
 
 
-17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the name label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
+17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the `name` label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
 
 ```
 import UIKit
@@ -529,7 +531,7 @@ Build and run. Click a row in the cat table. The app transitions to an empty scr
 
 ![Empty Breed Screen](images/emptyBreed.png "Empty Breed Screen")
 
-21\. You may notice that the transition to `BreedDetailVC` is choppy. The author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
+21\. You may notice that the transition to `BreedDetailVC` is choppy. The Author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
 
 ```
 override func viewWillAppear(_ animated: Bool) {
@@ -544,7 +546,7 @@ In the function `tableView(_ tableView: UITableView, didSelectRowAt indexPath: I
 breedBrowseView.isHidden = true
 ```
 
-This fixes the choppiness. The author would welcome a less-hacky solution.
+This fixes the choppiness. The Author is open to less-hacky suggestions.
 
 22\. Time for some breed info. In `BreedDetailView.swift`, replace the definition of `BreedDetailView` with the following:
 
