@@ -436,7 +436,7 @@ class BreedCell: UITableViewCell {
 
 The structure of this code should be familiar from `BreedBrowseView`, but here are some comments:
 
-// 0: One step in the conversion of an app from IB to to PL is to inventory the fonts used in the app and centralize them in one file. As with colors, in a production app, these fonts, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying the fonts for you. They are in the file `Fonts.swift`, and he uses one of them for `BreedCell.name`.
+// 0: One step in the conversion of an app from IB to to PL is to inventory the fonts used in the app and centralize them in one file. As with colors, in a production app, these fonts, and their names, might be specified in a style guide from a designer. The Author has done the work of identifying the fonts for you. They are in the file `Fonts.swift`, and he uses one of them for `BreedCell.name`.
 
 // 1: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
 
@@ -455,7 +455,7 @@ Build _and_ run. You now have a cat table made with PL!
 ![Cat Table](images/catTable.png "Cat Table Built with Programmatic Layout")
 
 
-17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the `name` label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
+17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the `name` label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
 
 ```
 import UIKit
@@ -485,9 +485,7 @@ class BreedDetailView: UIView {
 }
 ```
 
-19\.
-
-`BreedDetailVC` currently assumes that that it's be instantiated from a storyboard, so in `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following:
+19\. `BreedDetailVC` currently assumes that that it's be instantiated from a storyboard, so in `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following:
 
 ```
 class BreedDetailVC: UIViewController, UITextViewDelegate {
@@ -513,9 +511,9 @@ class BreedDetailVC: UIViewController, UITextViewDelegate {
 
 This code is similar to that of other `UIViewController` subclasses discussed, with the following exception:
 
-// 0: This function is a clean way for clients to instantiate a `BreedDetailVC` with precisely the model data it needs, an instance of `Breed`. Clients could initialize `BreedDetailVC` directly, but if they did, they would have to remember to set the `breed` property, which would need to be `internal` rather than `private`. In this situation, the instance of `BreedDetailVC` would be in an unusable state until clients set the value of the `breed` property.
+// 0: This function is a clean way for clients to instantiate a `BreedDetailVC` with precisely the model data it needs, an instance of `Breed`. Clients could initialize `BreedDetailVC` directly, but if they did, they would have to remember to set the `breed` property, which would need to be `internal` rather than `private`. In this situation, instances of `BreedDetailVC` would be in an unusable state until clients set the value of the `breed` property.
 
-The benefit of the approach used here becomes even more apparent when `UIViewController` subclasses have many properties that need to be set. Because of autocompletion of `getViewController()`, clients never forget to provide appropriate values.
+The benefit of the approach used here becomes even more apparent when `UIViewController` subclasses have many properties that need to be set. Because of autocompletion of `getViewController()`, clients never forget to provide necessary values.
 
 20\. To allow the transition from `BreedViewVC` to `BreedDetailVC`, in `BreedBrowseVC.swift`, add the following to the definition of `BreedBrowseVC`:
 
@@ -794,7 +792,7 @@ class CreditsVC: UIViewController, UITextViewDelegate {
 
 The final implementation of this `UIViewController` subclass is similar to those of others you have seen, with a wrinkle.
 
-// 0: As you have experienced in IB-based development, the way to implement a `UIButton` tap using the IB approach is to control-drag from the `UIButton` in the storyboard to the `UIViewController` implementation. This code shows the PL approach: add targets in code to the `UIButton`s and provide implementations for the selectors you specify. The approach is similar for other controls like `UISegmentedControl`. Here is an example from [Conjugar](https://github.com/vermont42/Conjugar/blob/master/Conjugar/BrowseVerbsVC.swift):
+// 0: As you may have experienced, the way to implement a `UIButton` tap using the IB approach is to control-drag from the `UIButton` in the storyboard to the `UIViewController` implementation. This code shows the PL approach: add targets in code to the `UIButton`s and provide implementations for the selectors you specify. The approach is similar for other controls like `UISegmentedControl`. Here is an example from [Conjugar](https://github.com/vermont42/Conjugar/blob/master/Conjugar/BrowseVerbsVC.swift):
 
 ```
 override func loadView() {
@@ -818,10 +816,10 @@ On an illustrative note, here is the implementation of a selector for a `UISegme
 
 ### Closing Thoughts
 
-The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate for your use case. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of a third-party dependency [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit), for example, provides such a clean API that it is worth considering as an alternative to raw `NSLayoutAnchor`.
+The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate for your use case. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of third-party dependencies [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit) provides such a clean API that he considers that framework to be a viable alternative to raw `NSLayoutAnchor`.
 
 ### Credits
 
-* [Matt](https://twitter.com/matt_luedke) [Luedke](https://soundcloud.com/good_day_sir/real-thing-instrumental) revealed PL's benefits to the Author and taught him its use.
+* [Matt](https://twitter.com/matt_luedke) [Luedke](https://soundcloud.com/good_day_sir/real-thing-instrumental) shared PL's benefits with the Author and taught him its use.
 * [Doug Suriano](https://twitter.com/dougsuriano) created extensions on `UIView` and `NSLayoutConstraint` that improve the PL experience.
-* [iOSDevUK](https://twitter.com/IOSDEVUK) inspired the Author to create [Conjugar](https://github.com/vermont42/Conjugar), his first from-scratch app using PL. This tutorial is a companion piece to a talk he presented at that conference in 2017.
+* [iOSDevUK](https://twitter.com/IOSDEVUK) inspired the Author to create [Conjugar](https://github.com/vermont42/Conjugar), his first PL-from-scratch app. This tutorial is a companion piece to a talk he presented at that conference in 2017.
