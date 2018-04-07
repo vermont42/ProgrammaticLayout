@@ -20,7 +20,7 @@ Proponents of IB cite, _inter alia_, the following advantages:
 * Apple is promoting use of IB in WWDC sessions, suggesting that IB is more future-proof than PL. Future iOS features might not be available to PL developers in the same way that multitasking on iPad is not available to developers who have not adapted size classes.
 * Creating a UI in IB is faster and easier to iterate on. In concrete terms, dragging UI elements around a storyboard and fiddling with their properties until the UI takes useful shape is easy, but creating a UI in code without knowing ahead of time _exactly_ what form the UI should take is nigh-impossible. In practice, therefore, PL requires use of some other design tool, for example Sketch or a napkin.
 * An app that uses IB has fewer lines of Swift or Objective-C code than an identically functioning app that uses PL. [Less code is better.](https://blog.codinghorror.com/the-best-code-is-no-code-at-all/) There is an argument that the nuts and bolts of UI creation and layout are not central to an app’s functionality, so developers should offload those nuts and bolts, to the extent possible, to IB in the same way that developers sometimes offload creation and maintenance of their object graphs to CoreData.
-* Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the author of this tutorial (the Author) was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
+* Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the [author](https://twitter.com/vermont42) of this tutorial (the Author) was adding a scroll view to his PL-based app, [Conjugar](), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
 
 Proponents of PL cite, _inter alia_, the following disadvantages of IB:
 * Using IB does mean less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
@@ -39,28 +39,23 @@ violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global ch
 
 This tutorial takes no position as to whether PL or IB is the better approach. But because of PL's many benefits, this tutorial _does_ argue that developers who know only IB would benefit from learning PL. A desire to facilitate this learning prompted this tutorial, which begins after the following disclaimer: The tutorial assumes working knowledge of iOS development with IB and, in particular, Auto Layout. Readers not in possession of that knowledge might find helpful [CS193P](https://www.youtube.com/watch?v=71pyOB4TPRE), which was the tutorial's author's entrée to iOS development.
 
-1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB).
+1\. Clone, build, and run the [starter project](https://github.com/vermont42/CatBreedsIB). Explore cat breeds.
 
-2\. Poke around the code and storyboard. The app is intended to be simple enough to grok without much effort but complicated enough to demonstrate various PL techniques.
+2\. Poke around the code and storyboard. The app is intended to be simple enough to grok without much effort but complicated enough to demonstrate various PL techniques. Here are some comments on the implementation.
 
-The app is intended to be simple to understand, but here are some comments.
 * There is no way to edit attributed strings in IB, so the app uses a sort of Markdown-lite that allows different formatting for headings, subheadings, and URLs. See `StringExtensions.swift` and `Credits.swift` for implementation and use, respectively. This technique, developed for [RaceRunner](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) and used by [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467), works well in this and other simple use cases despite not providing the full power of Markdown.
-
 * There is, [on information and belief](https://dictionary.law.com/Default.aspx?selected=954), no way to set tab- or navigation-bar fonts in IB, so the app uses an app-delegate-initiated approach from StackOverflow.
 * App-and-button icons are from [The Noun Project](https://thenounproject.com). Consider using this website if you need professional-grade icons but do not have the skill to make them or the budget to commission them.
-
 * The app's color palette is from [Coolors](https://coolors.co). The Author is not an artist, so he uses this website for suggestions of harmonious color palettes.
 
-* There are no custom `UIView` subclasses in the IB app, but this will change in the course of IB conversion.
-
-3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard will serve as a reference as you create the views. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
+3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard can serve as a reference as you create the custom `UIView`s. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
 
 As an aside, when this tutorial refers to a file in the project, the easiest way to find the file is to click the Project Navigator button in the top-left corner of Xcode and type the filename in the search bar, as shown in this screenshot.
 
 ![Files](images/files.png "Finding Files in the Project Navigator")
 
 
-4\. Resist temptation. Do not build _or_ run. The runtime no longer knows what UI to show, so running would be pointless. Instead, _tell_ the runtime what UI to show by adding the following line, just before the `return`, in `application(_: didFinishLaunchingWithOptions:)` in `AppDelegate.swift`:
+4\. Resist temptation. Do not build _or_ run. The runtime no longer knows what UI to show, so running would be pointless. You must _tell_ the runtime what UI to show. In `AppDelegate.swift`, add the following lines just before the `return` in `application(_: didFinishLaunchingWithOptions:)`:
 
 ```
 window = UIWindow(frame: UIScreen.main.bounds)
@@ -73,7 +68,7 @@ The purpose of this code is to make an instance of `MainTabBarVC` the root of th
 
 5\. Note the compilation error `Use of unresolved identifier 'MainTabBarVC'`. This error occurs because in the IB-based app, the storyboard specified a non-subclassed instance of `UITabBarController` as the root of the app's UI, but the PL-based app will use a named subclass, `MainTabBarController`, of `UITabBarController`, and you need to create that subclass. Why a named subclass? The named subclass will have business logic about what tabs to create, what to name them, and what icons to use for them.
 
-Before you do that, here is an aside about roots and navigation. The root of an app's UI depends on how navigation works in that app. A single-screen app would have a `UIViewController` subclass as its root. A single-screen app that uses a `UINavigationController` would have have a `UINavigationController` subclass as its root. This subclass would instantiate the app's first `UIViewController`. An app whose navigation is based on a third-party hamburger menu like [SideMenu](https://github.com/jonkykong/SideMenu) would have, as its root, a `UIViewController` subclass that sets up the hamburger menu.
+Before you do that, here is an aside about roots and navigation. The root of an app's UI depends on how navigation works in that app. A single-screen app would have a `UIViewController` subclass as its root. A single-screen app that uses a `UINavigationController` would have have a `UINavigationController` as its root. This object would own the app's primary `UIViewController`. An app whose navigation is based on a third-party hamburger menu like [SideMenu](https://github.com/jonkykong/SideMenu) would have, as its root, a `UIViewController` subclass that sets up the hamburger menu.
 
 Back to the custom `UITabBarController` subclass. In the group `ViewControllers`, create an empty file called `MainTabBarVC.swift`. Paste the following code into it:
 
@@ -109,17 +104,17 @@ Here are some explanations of this file:
 
 // 0: This line is the "model" of the tab bar. This model could be fancier, perhaps a separate struct or class, but an array of tab names works fine in this app.
 
-// 1: This line create the left-hand `UIViewController`, a `BreedBrowseVC`, and embeds it in a `UINavigationController`, which is necessary because the user will drill down from this screen to a `BreedDetailVC` with information about a specific cat breed. If you needed custom `UINavigationController` behavior, you could use a subclass of that class.
+// 1: This line creates the left-hand `UIViewController`, a `BreedBrowseVC`, and embeds it in a `UINavigationController`, which is necessary because the user will drill down from this screen to a `BreedDetailVC` for information about a specific cat breed. If you needed to customize `UINavigationController`'s behavior, you could use a subclass of that class.
 
 // 2: This line set the name, "Browse", and the icon, a sitting cat, of the `BreedBrowseVC`'s `UITabBarItem`.
 
-// 3: This line creates the right-hand `UIViewController`, a `CreditsVC`. There is no drill-down from credits, so there is no embedding in a `UINavigationController`.
+// 3: This line creates the right-hand `UIViewController`, a `CreditsVC`. There is no drill-down from credits, so there is no `UINavigationController`.
 
-// 4: This line set the name, "Credits", and the icon, a jumping cat, of the `CreditsVC`'s `UITabBarItem`.
+// 4: This line sets the name, "Credits", and the icon, a jumping cat, of the `CreditsVC`'s `UITabBarItem`.
 
-// 5: This line tells the `UITabBarController` to manage the browse and credits `UIViewController`s.
+// 5: This line tells the `UITabBarController` to manage the browse-and-credits `UIViewController`s.
 
-// 6: Swift's initializer rules require implementation of this initializer, but because you won't be using a storyboard, the initializer need not have a functional implementation. More details [here](https://stackoverflow.com/a/24036440).
+// 6: Swift's initializer rules require inclusion of this initializer, but because you won't be using a storyboard, the implementation need not be functional. More details [here](https://stackoverflow.com/a/24036440).
 
 6\. Feel free to build, but _don't_ run. If you do, you will see a crash caused by the fact that `BreedBrowseVC`'s `UITableView` expects to be instantiated from a storyboard, which isn't happening. `CreditsVC`'s `UITextView` has a similar problem. For an initial fix, comment out the definition of `BreedBrowseVC`'s in `BreedBrowseVC.swift` and insert the following definition:
 
@@ -143,15 +138,11 @@ When you use storyboards, the views of your `UIViewController`s often need not b
 
 Here are some explanations of this definition:
 
-// 0:
+// 0: As mentioned earlier, with the PL approach, `UIViewController`s own instances of named `UIView` subclasses as their `view` property. Giving this property an appropriately typed alias, in this case `breedBrowseView`, allows clean access to this named-subclass instance throughout the `UIViewController`. If you only referred to the instance by its `view` name/property, you would need to cast it to a `BreedBrowseView` every time you referred to `BreedBrowseView`-specific properties and methods.
 
-As mentioned earlier, with the PL approach, `UIViewController`s own instances of named `UIView` subclasses as their `view` property. Giving this property an appropriately typed alias, in this case `breedBrowseView`, allows clean access to this named-subclass instance throughout the `UIViewController`. If you only referred to the instance by its `view` name/property, you would need to cast it to a `BreedBrowseView` every time you referred to `BreedBrowseView`-specific properties and methods.
+The use of force-unwrap here is controversial in some quarters but carefully considered by the Author.
 
-The use of force-unwrap here is controversial but carefully considered by the [author](https://twitter.com/vermont42) of this tutorial.
-
-// 1:
-
-`loadView()` is a `UIViewController`-lifecycle method. This is a method you may not have seen if you have been doing IB-based development. Why not? If you've been using IB, the runtime, not your code, has been responding to calls of this method. As the [documentation](https://developer.apple.com/documentation/uikit/uiviewcontroller/1621454-loadview) states,
+// 1: `loadView()` is a `UIViewController`-lifecycle method. This is a method you may not have seen if you have been doing IB-based development. Why not? If you've been using IB, the runtime, not your code, has been responding to calls of this method. As the [documentation](https://developer.apple.com/documentation/uikit/uiviewcontroller/1621454-loadview) states,
 
 >The view controller calls this method when its view property is requested but is currently nil. This method loads or creates a view and assigns it to the view property.
 
@@ -213,9 +204,9 @@ Build and run. You now have a functional PL-based app!
 
 ![Functional App](images/functionalApp.png "Functional PL-Based App")
 
-10\. The next step is complete in the starter project, but, in general, the next step in the conversion of an app from IB to PL is to take an inventory of the colors currently being used in the storyboard and put them in a data structure that your UI code can use. In a production app, these colors, and their names, might be specified in a style guide from a designer. As noted earlier, the colors in this app are from Coolors. Take a look at `Colors.swift`, which contains the five Coolors colors. With respect to naming the colors, you can choose names that reflect the actual colors, as in this app. But you might also choose more-abstract names like `button`, `alert`, or `body`. More-abstract names have the advantage that they are not tied to particular RGB values and therefore remain useful if those RGB values change radically. The disadvantage is that, for example, if you want to use the `body` color for something that is not text body, you will need to make an alias of that color.
+10\. The next step is complete in the starter project, but, in general, the next step in the conversion of any app from IB to PL is to inventory the colors currently being used in the storyboard and put them in a data structure that your UI code can use. In a production app, these colors, and their names, might be specified in a style guide from a designer. As noted earlier, the colors in this app are from Coolors. Take a look at `Colors.swift`, which contains the five Coolors colors. With respect to naming the colors, you can choose names that reflect the actual colors, as in this app. But you might also choose more-abstract names like `button`, `alert`, or `body`. More-abstract names have the advantage that they are not tied to particular RGB values and therefore remain useful if those RGB values change radically. The disadvantage is that, for example, if you want to use the `body` color for something that is not text body, you will need to make an alias of that color.
 
-11\. You may have noticed that the `Browse` tab lacks the original table of cats. The fix for this is to implement the view that holds this table. Replace the contents of `BreedBrowseView.swift` with the following:
+11\. You may have noticed that the `Browse` tab lacks the original table of cat breeds. The fix for this is to implement the view that holds this table. In `BreedBrowseView.swift`, replace the definition of `BreedBrowseView` with the following:
 
 ```
 class BreedBrowseView: UIView {
@@ -825,4 +816,10 @@ On an illustrative note, here is the implementation of a selector for a `UISegme
 
 ### Closing Thoughts
 
-The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of a third-party dependency [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit), for example, provides such a clean API that it is worth considering as an alternative to raw `NSLayoutAnchor`.
+The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate for your use case. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of a third-party dependency [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit), for example, provides such a clean API that it is worth considering as an alternative to raw `NSLayoutAnchor`.
+
+### Credits
+
+* [Matt](https://twitter.com/matt_luedke) [Luedke](https://soundcloud.com/good_day_sir/real-thing-instrumental) revealed PL's benefits to the Author and taught him its use.
+* [Doug Suriano](https://twitter.com/dougsuriano) created extensions on `UIView` and `NSLayoutConstraint` that improve the PL experience.
+* [iOSDevUK](https://twitter.com/IOSDEVUK) inspired the Author to create [Conjugar](https://github.com/vermont42/Conjugar), his first from-scratch app using PL. This tutorial is a companion piece to a talk he presented at that conference in 2017.
