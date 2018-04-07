@@ -28,7 +28,7 @@ Proponents of PL cite, _inter alia_, the following disadvantages of IB:
 
 ![Warnings](images/warnings.jpg "Warnings Caused by XIB-Format Change")
 
-* Because the IB file format is not backwards-compatible, old storyboards and XIBs cannot even be opened in newer versions of Xcode, a situation decried [here](http://www.lapcatsoftware.com/articles/working-without-a-nib-part-11.html). UIs created in IB are, in that sense, ticking time-bombs. As Swift evolves, old PL code may not compile, but it can always be opened in Xcode and grokked by the developer.
+* Because the IB file format is not backwards-compatible, old storyboards and XIBs cannot even be opened in newer versions of Xcode, a situation described [here](http://www.lapcatsoftware.com/articles/working-without-a-nib-part-11.html). UIs created in IB are, in that sense, ticking time-bombs. As Swift evolves, old PL code may not compile, but it can always be opened in Xcode and grokked by the developer.
 * IB hides implementation details from the iOS-development-learner. For example, an IB learner learning about tab bars might learn to click a view controller in the storyboard and click Editor -> Embed In -> Tab Bar Controller. The learner might not realize that a `UITabBarController` gets instantiated at runtime. A PL learner learning about tab bars can't avoid instantiating `UITabBarController` explicitly. The PL approach therefore fosters deeper understanding of UIKit.
 * By requiring the developer to set, by hand, the value of every color, font, padding, and constraint constant, the IB approach
 violates the [DRY](http://deviq.com/don-t-repeat-yourself/) principle. Global changes to colors, fonts, paddings, and constraint constants are tedious and error-prone. With the PL approach, these values are set once in code and are easy to change globally.
@@ -236,13 +236,14 @@ class BreedBrowseView: UIView {
   // 3
   override init(frame: CGRect) {
     super.init(frame: frame)
+    backgroundColor = Colors.blackish
     // 4
     addSubview(table)
     // 5
-    table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).isActive = true
-    table.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-    table.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
-    table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).isActive = true
+    table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
+    table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+    table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+    table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
   }
 
   // 6
@@ -284,7 +285,7 @@ All `UIView`s, including the containing view, have top, bottom, leading, trailin
 
 The containing view's anchors, for example `.leadingAnchor` and `.centerYAnchor`, can be accessed directly. Views have two additional properties, [layoutMarginsGuide](https://developer.apple.com/documentation/uikit/uiview/1622651-layoutmarginsguide) and [safeAreaLayoutGuide](https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide). `layoutMarginsGuide` is a "layout guide representing the view’s margins". Because content can be inside the margins but hidden behind a `UITabBar` or `UINavigationBar`, this property does not entirely encompass the concept of the space where user-visible controls should go. Pinning the top- and bottom-most controls to the `safeAreaLayoutGuide`, which does not include the hidden area, prevents controls from being hidden by `UINavigationBar`s or `UITabBar`s.
 
-In the code you pasted, the goal is for the content, the cat table, to extend to the left and right edges of the screen, so the code uses `leadingAnchor` and `trailingAnchor` rather than `layoutMarginsGuide.leadingAnchor` and `layoutMarginsGuide.trailingAnchor`. The cat table should _not_ be hidden behind a `UINavigationBar` or `UITabBar`, however, so the code pins the top and bottom of the cat table to `safeAreaLayoutGuide.topAnchor` and `safeAreaLayoutGuide.bottomAnchor`, respectively.
+In the code you pasted, the goal is for the content, the cat table, to extend to the left and right margins, so the code uses `layoutMarginsGuide.leadingAnchor` and `layoutMarginsGuide.trailingAnchor`. The cat table should _not_ be hidden behind a `UINavigationBar` or `UITabBar`, however, so the code pins the top and bottom of the cat table to `safeAreaLayoutGuide.topAnchor` and `safeAreaLayoutGuide.bottomAnchor`, respectively.
 
 // 6: This code could go in `BreedBrowseVC`, but bundling it here is tidier.
 
@@ -335,8 +336,8 @@ override init(frame: CGRect) {
   super.init(frame: frame)
   addSubview(table)
   table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
-  table.leadingAnchor.constraint(equalTo: leadingAnchor).activate()
-  table.trailingAnchor.constraint(equalTo: trailingAnchor).activate()
+  table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+  table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
   table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
 }
 ```
@@ -406,12 +407,13 @@ class BreedCell: UITableViewCell {
   private var name: UILabel = {
     let name = UILabel()
     name.textColor = Colors.white
+    // 0
     name.font = Fonts.body
     name.enableAutoLayout()
     return name
   } ()
 
-  // 0
+  // 1
   internal static let thumbnailHeightWidth: CGFloat = 58.0
 
   required init?(coder aDecoder: NSCoder) {
@@ -423,7 +425,7 @@ class BreedCell: UITableViewCell {
     backgroundColor = Colors.blackish
     addSubview(photo)
     addSubview(name)
-    // 1
+    // 2
     photo.centerYAnchor.constraint(equalTo: centerYAnchor).activate()
     photo.leadingAnchor.constraint(equalTo: leadingAnchor).activate()
     photo.heightAnchor.constraint(equalToConstant: BreedCell.thumbnailHeightWidth).activate()
@@ -441,9 +443,11 @@ class BreedCell: UITableViewCell {
 
 The structure of this code should be familiar from `BreedBrowseView`, but here are some comments:
 
-// 0: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
+// 0: One step in the conversion of an app from IB to to PL is to inventory the fonts used in the app and centralize them in one file. As with colors, in a production app, these fonts, and their names, might be specified in a style guide from a designer. The Author has done the hard work of identifying the fonts for you. They are in the file `Fonts.swift`, and he uses one of them for `BreedCell.name`.
 
-// 1: This Auto Layout code demonstrates three new constraints: `height`, `width`, and `centerYAnchor`. The Author hopes you agree that use of this API is self-documenting.
+// 1: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
+
+// 2: This Auto Layout code demonstrates three new constraints: `height`, `width`, and `centerYAnchor`. The Author hopes you agree that use of this API is self-documenting.
 
 16\. The table's rows currently have a default height, not the appropriate height based on the height of the cat thumbnails. To fix this, add the following implementation to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`:
 
@@ -534,7 +538,7 @@ Build and run. Click a row in the cat table. The app transitions to an empty scr
 
 ![Empty Breed Screen](images/emptyBreed.png "Empty Breed Screen")
 
-21\. You may notice that the transition to the `BreedDetailVC` is choppy. The author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
+21\. You may notice that the transition to `BreedDetailVC` is choppy. The author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
 
 ```
 override func viewWillAppear(_ animated: Bool) {
@@ -549,9 +553,276 @@ In the function `tableView(_ tableView: UITableView, didSelectRowAt indexPath: I
 breedBrowseView.isHidden = true
 ```
 
-This fixes the choppiness. If you have a better solution for this, please contact the Author.
-### TODO
+This fixes the choppiness. The author would welcome a less-hacky solution.
 
-Remove extraneous `import Foundation`s from starter project.
+22\. Time for some breed info. In `BreedDetailView.swift`, replace the definition of `BreedDetailView` with the following:
 
-Rename starter app (but not repo) CatBreeds.
+```
+class BreedDetailView: UIView {
+  internal var photo: UIImageView = {
+    let photo = UIImageView()
+    photo.contentMode = .scaleAspectFit
+    photo.enableAutoLayout()
+    return photo
+  } ()
+
+  internal var fullDescription: UITextView = {
+    let fullDescription = UITextView()
+    fullDescription.textColor = Colors.white
+    fullDescription.backgroundColor = Colors.blackish
+    fullDescription.font = Fonts.body
+    fullDescription.bounces = false
+    fullDescription.enableAutoLayout()
+    return fullDescription
+  } ()
+
+  // 0
+  internal static let initialPhotoHeightWidth: CGFloat = 180.0
+  private var photoHeight: NSLayoutConstraint?
+  private var photoWidth: NSLayoutConstraint?
+
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented.")
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    backgroundColor = Colors.blackish
+    addSubview(photo)
+    addSubview(fullDescription)
+    photo.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
+    photo.centerXAnchor.constraint(equalTo: centerXAnchor).activate()
+    // 1
+    photoHeight = photo.heightAnchor.constraint(equalToConstant: BreedDetailView.initialPhotoHeightWidth)
+    photoHeight?.activate()
+    photoWidth = photo.widthAnchor.constraint(equalToConstant: BreedDetailView.initialPhotoHeightWidth)
+    photoWidth?.activate()
+    fullDescription.topAnchor.constraint(equalTo: photo.bottomAnchor, constant: Padding.standard).activate()
+    fullDescription.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
+    fullDescription.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+    fullDescription.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+  }
+
+  // 2
+  internal func updatePhotoSize(heightWidth: CGFloat) {
+    photoWidth?.constant = heightWidth
+    photoHeight?.constant = heightWidth
+  }
+
+  // 3
+  internal func hide() {
+    photo.isHidden = true
+    fullDescription.isHidden = true
+  }
+
+  internal func unhide() {
+    photo.isHidden = false
+    fullDescription.isHidden = false
+  }
+}
+```
+
+This code is similar to that of `BreedBrowseView` with the exceptions discussed here.
+
+// 0: The `height` and `width` constraints are unusual in that they vary based on the `y` position of the `UITextView`. Because these constraints vary, they are given persistent names and an initial value here. The initial value, `initialPhotoHeightWidth`, is `internal` because `BreedDetailVC` needs to access it to tell `BreedView` what value to change it to.
+
+// 1: These four lines differ from the setup of most `NSLayoutAnchor` constraints because the two constraints, photo height and width, can vary and are therefore named.
+
+// 2: This is a convenience function for `BreedDetailVC` to call when the user scrolls. This function allows the two constraints to be `private` to `BreedDetailView`. If not for this function, those two constraints would need to be `internal`.
+
+// 3: `hide()` and `unhide()` are necessitated by the strange fact that `fullDescription` starts at a nonzero vertical offset. `BreedDetailVC` sets the initial vertical offset to `0`, using `hide()` and `unhide()` to shield the user from flickering. On a meta note, this sort of hackery is another example of the challenges that the PL approach can present.
+
+23\. In `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following.
+
+```
+class BreedDetailVC: UIViewController, UITextViewDelegate {
+  private var breed: Breed!
+
+  var breedDetailView: BreedDetailView {
+    return view as! BreedDetailView
+  }
+
+  override func loadView() {
+    title = breed.name
+    let breedDetailView = BreedDetailView(frame: UIScreen.main.bounds)
+    breedDetailView.fullDescription.text = breed.fullDescription
+    breedDetailView.fullDescription.delegate = self
+    breedDetailView.photo.image = breed.photo
+    view = breedDetailView
+  }
+
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    breedDetailView.hide()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    breedDetailView.fullDescription.setContentOffset(.zero, animated: false)
+    breedDetailView.unhide()
+  }
+
+  class func getViewController(breed: Breed) -> BreedDetailVC {
+    let breedDetailVC = BreedDetailVC()
+    breedDetailVC.breed = breed
+    return breedDetailVC
+  }
+
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let y = breedDetailView.fullDescription.contentOffset.y
+    if y < BreedDetailView.initialPhotoHeightWidth {
+      breedDetailView.updatePhotoSize(heightWidth: BreedDetailView.initialPhotoHeightWidth - y)
+    } else {
+      breedDetailView.updatePhotoSize(heightWidth: 0.0)
+    }
+  }
+}
+```
+
+The implementation of `BreedDetailVC` is similar to that of `BreedBrowseVC`, but see Part 23, Comment 3 for a discussion of the hackery involving `hide()`, `unhide()`, and `setContentOffset()`.
+
+Build _and_ run. You now have a working breed-details screen.
+
+![Tonkinese](images/breedDetail.png "Details on the Tonkinese Breed")
+
+24\. Time to convert the credits screen. In `CreditsView.swift`, replace the definition of `CreditsView` with the following:
+
+```
+class CreditsView: UIView {
+  internal var credits: UITextView = {
+    let credits = UITextView()
+    credits.textColor = Colors.white
+    credits.backgroundColor = Colors.blackish
+    credits.font = Fonts.body
+    credits.enableAutoLayout()
+    // 0
+    credits.isEditable = false
+    return credits
+  } ()
+
+  // 1
+  internal let meow1: UIButton = {
+    let meow1 = UIButton()
+    meow1.setTitle("Meow 1", for: .normal)
+    meow1.titleLabel?.font = Fonts.button
+    meow1.setTitleColor(Colors.greenish, for: .normal)
+    meow1.enableAutoLayout()
+    return meow1
+  } ()
+
+  internal let meow2: UIButton = {
+    let meow2 = UIButton()
+    meow2.setTitle("Meow 2", for: .normal)
+    meow2.titleLabel?.font = Fonts.button
+    meow2.setTitleColor(Colors.greenish, for: .normal)
+    meow2.enableAutoLayout()
+    return meow2
+  } ()
+
+  required init(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented.")
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    backgroundColor = Colors.blackish
+    // 2
+    [credits, meow1, meow2].forEach {
+      addSubview($0)
+    }
+    credits.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: Padding.standard).activate()
+    // 3
+    credits.bottomAnchor.constraint(equalTo: meow1.topAnchor, constant: Padding.standard * -1.0).activate()
+    credits.bottomAnchor.constraint(equalTo: meow2.topAnchor, constant: Padding.standard * -1.0).activate()
+    credits.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+    credits.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+
+    meow1.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: Padding.standard * -1.0).activate()
+    meow1.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
+
+    meow2.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: Padding.standard * -1.0).activate()
+    meow2.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
+  }
+}
+```
+
+The implementation of `CreditsView` is similar to that of `BreedBrowseView`, discussed in Step 11, but here are some comments about peculiarities of this implementation.
+
+// 0: `UITextView`s default to editable, which is inappropriate for this app. The user shouldn't be able to edit the credits. Also, if the `UITextView` is editable, URLs can't be clicked. You'll notice that `Editable` is unchecked in the storyboard, so this line replicates that. On a meta note, a big part of converting a UI from IB to PL is ensuring that non-default values in the storyboard, such as `editable`, are preserved in the code.
+
+// 1: This definition and the one after it are for the two meow buttons. You might notice that there is a lot of code duplicated between the two definitions. Depending on your use case, it might make sense to factor out code that is shared among controls. Here is an example of that from [Conjugar](https://github.com/vermont42/Conjugar):
+
+![Conjugar](images/Conjugar.png "Conjugation of Oír in Conjugar")
+
+There are nine `UILabel`s near the top of the screen that are identical except for their content. Rather than repeating the setup of each `UILabel`, the Author [factored out](https://github.com/vermont42/Conjugar/blob/master/Conjugar/VerbView.swift) shared setup. This shared code could at the top of `init()`, as in Conjugar, or in a separate function.
+
+// 2: Here is an example of using `forEach` to avoid code duplication.
+
+// 3: The `constant` parameter of `NSLayoutAnchor.constraint()` sometimes has negative semantics. That is, a positive value results in the opposite padding of what the developer expects. In this situation, the developer must multiply the padding by `-1.0`, as here, to get the desired behavior.
+
+25\. In order to use this new `CreditsView`, replace the implementation of `CreditsVC` in `CreditsVC.swift` with the following:
+
+```
+class CreditsVC: UIViewController, UITextViewDelegate {
+  var creditsView: CreditsView {
+    return view as! CreditsView
+  }
+
+  override func loadView() {
+    let creditsView = CreditsView(frame: UIScreen.main.bounds)
+    creditsView.credits.attributedText = Credits.credits.infoString
+    creditsView.credits.delegate = self
+    // 0
+    creditsView.meow1.addTarget(self, action: #selector(meow1), for: .touchUpInside)
+    creditsView.meow2.addTarget(self, action: #selector(meow2), for: .touchUpInside)
+    view = creditsView
+  }
+
+  // 1
+  @objc func meow1(sender: UIButton!) {
+    SoundManager.play(.meow1)
+  }
+
+  @objc func meow2(sender: UIButton!) {
+    SoundManager.play(.meow2)
+  }
+
+  func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
+    let http = "http"
+    if URL.absoluteString.prefix(http.count) == http {
+      return true
+    }
+    else {
+      return false
+    }
+  }
+}
+```
+
+The final implementation of this `UIViewController` subclass is similar to those of others you have seen, with a wrinkle.
+
+// 0: As you have experienced in IB-based development, the way to implement a `UIButton` tap using the IB approach is to control-drag from the `UIButton` in the storyboard to the `UIViewController` implementation. This code shows the PL approach: add targets in code to the `UIButton`s and provide implementations for the selectors you specify. The approach is similar for other controls like `UISegmentedControl`. Here is an example from [Conjugar](https://github.com/vermont42/Conjugar/blob/master/Conjugar/BrowseVerbsVC.swift):
+
+```
+override func loadView() {
+  ...
+  browseVerbsView.filterControl.addTarget(self, action: #selector(BrowseVerbsVC.valueChanged(_:)), for: .valueChanged)
+  ...
+}
+```
+
+// 1: This is an implementation of a selector that should fire when a `UIButton` is tapped. The `@objc` keyword is required to expose the implementation to the Objective-C runtime.
+
+On an illustrative note, here is the implementation of a selector for a `UISegmentedControl` in [Conjugar](https://github.com/vermont42/Conjugar/blob/master/Conjugar/BrowseVerbsVC.swift):
+
+```
+@objc func valueChanged(_ sender: UISegmentedControl) {
+  browseVerbsView.reloadTableData()
+}
+```
+
+26\. Conversion is complete! For the sake of [簡素](https://theendlessfurther.com/tag/kanso/), delete `Main.storyboard` and commented-out IB-dependent code. A fully converted version of the app is available [here]().
+
+### Closing Thoughts
+
+The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of a third-party dependency [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit), for example, provides such a clean API that it is worth considering as an alternative to raw `NSLayoutAnchor`.
