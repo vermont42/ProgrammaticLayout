@@ -23,7 +23,7 @@ Proponents of IB cite, _inter alia_, the following advantages:
 * Relatedly, because most iOS-UI sample code demonstrates use of IB, not PL, initial use of PL sometimes requires more research. For example, when the [author](https://twitter.com/vermont42) of this tutorial (the Author) was adding a scroll view to his PL-based app, [Conjugar](https://github.com/vermont42/Conjugar), he had a 🐻 of a time setting up the constraints and ownership graph so that the scroll view functioned properly because, in part, of the dearth of PL sample code on the Internet.
 
 Proponents of PL cite, _inter alia_, the following disadvantages of IB:
-* Using IB result in less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
+* Using IB results in less Objective-C or Swift code, but IB does use "code" in the form of an undocumented, arguably inscrutable XML file. In one production iOS [app](https://github.com/vermont42/RaceRunner), this [file](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/Main.storyboard) is 2503 lines long.
 * IB's XML format is subject to change between Xcode versions. Changes in format can cause warnings that the developer has to fix. [Two](https://itunes.apple.com/us/app/immigration/id777319358) [apps](https://itunes.apple.com/us/app/racerunner-run-tracking-app/id1065017082) developed by the Author experienced these warnings, examples of which appear in the following screenshot.
 
 ![Warnings](images/warnings.jpg "Warnings Caused by XIB-Format Change")
