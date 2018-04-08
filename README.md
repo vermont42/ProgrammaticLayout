@@ -48,7 +48,7 @@ This tutorial takes no position as to whether PL or IB is the better approach. B
 * App-and-button icons are from [The Noun Project](https://thenounproject.com). Consider using this website if you need professional-grade icons but do not have the skill to make them or the budget to commission them.
 * The app's color palette is from [Coolors](https://coolors.co). The Author is not an artist, so he uses this website for suggestions of harmonious color palettes.
 
-3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard can serve as a reference as you create the custom `UIView`s. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
+3\. You might think that the first step of converting an app from IB to PL is to delete the storyboard, but that is not the case because the storyboard can serve as a reference as you implement `UIView`s in code. So don't delete the storyboard. But you do need to tell the runtime not to use the storyboard to create the UI. So in the file `Info.plist`, find the key `Main storyboard file base name`, click it, and press the `delete` key.
 
 As an aside, when this tutorial refers to a file in the project, the easiest way to find the file is to click the Project Navigator button in the top-left corner of Xcode and type the filename in the search bar, as shown in this screenshot.
 
@@ -106,7 +106,7 @@ Here are some explanations of this file:
 
 // 1: This line creates the left-hand `UIViewController`, a `BreedBrowseVC`, and embeds it in a `UINavigationController`, which is necessary because the user will drill down from this screen to a `BreedDetailVC` for information about a specific cat breed. If you needed to customize `UINavigationController`'s behavior, you could use a subclass of that class.
 
-// 2: This line set the name, "Browse", and the icon, a sitting cat, of the `BreedBrowseVC`'s `UITabBarItem`.
+// 2: This line sets the name, "Browse", and the icon, a sitting cat, of the `BreedBrowseVC`'s `UITabBarItem`.
 
 // 3: This line creates the right-hand `UIViewController`, a `CreditsVC`. There is no drill-down from credits, so there is no `UINavigationController`.
 
@@ -116,7 +116,7 @@ Here are some explanations of this file:
 
 // 6: Swift's initializer rules require inclusion of this initializer, but because you won't be using a storyboard, the implementation need not be functional. More details [here](https://stackoverflow.com/a/24036440).
 
-6\. Feel free to build, but _don't_ run. If you do, you will see a crash caused by the fact that `BreedBrowseVC`'s `UITableView` expects to be instantiated from a storyboard, which isn't happening. `CreditsVC`'s `UITextView` has a similar problem. For an initial fix, comment out the definition of `BreedBrowseVC`'s in `BreedBrowseVC.swift` and insert the following definition:
+6\. Feel free to build, but _don't_ run. If you do, you will see a crash caused by the fact that `BreedBrowseVC`'s `UITableView` expects to be instantiated from a storyboard, which isn't happening. `CreditsVC`'s `UITextView` has the same problem. For an initial fix, comment out the definition of `BreedBrowseVC` in `BreedBrowseVC.swift` and insert the following definition:
 
 ```
 class BreedBrowseVC: UIViewController {
@@ -134,7 +134,7 @@ class BreedBrowseVC: UIViewController {
 
 (Why comment out the previous definition and not replace it? As you are converting a real app, keeping the previous definition around as a reference is helpful as you implement the new definition.)
 
-When you use storyboards, the views of your `UIViewController`s often need not be custom `UIView` subclasses. Instead, you just set properties of the view in IB. But when you use the PL approach, making every `UIViewController`'s `view` property an instance of a custom `UIView` subclass is helpful because those `UIView`s need a lot of code to set up controls and Auto Layout constraints.
+When you use storyboards, the views of your `UIViewController`s often need not be custom `UIView` subclasses. Instead, you just set properties of the view in IB. But when you use the PL approach, making every `UIViewController`'s `view` property an instance of a custom `UIView` subclass is helpful because those `UIView`s need code to set up controls and Auto Layout constraints.
 
 Here are some explanations of this definition:
 
@@ -166,7 +166,7 @@ class BreedBrowseView: UIView {
 
 This tutorial will fill out this definition in a later Step.
 
-8\. Continuing the fix for the runtime crash, comment out the definition of `CreditsVC`'s in `CreditsVC.swift` and insert the following definition:
+8\. Continuing the fix for the runtime crash, comment out the definition of `CreditsVC` in `CreditsVC.swift` and insert the following definition:
 
 ```
 class CreditsVC: UIViewController {
@@ -282,7 +282,7 @@ In the code you pasted, the goal is for the content, the cat table, to extend to
 
 // 6: This code could go in `BreedBrowseVC`, but bundling it here is tidier.
 
-12\. There are two annoying aspects to the Auto Layout code in the preceding Step. First, `translatesAutoresizingMaskIntoConstraints = false`, though necessary, is head-scratchy and hard-to-remember. Second, the syntax `.isActive = true` is awkward. Doug Suriano helpfully [provides](https://youtu.be/DmpoiN-SVds) fixes for both in the forms of extensions on `UIView` and `NSLayoutConstraint`.
+12\. The Auto Layout code in the preceding Step is annoying for two reasons. First, `translatesAutoresizingMaskIntoConstraints = false`, though necessary, is head-scratchy and hard-to-remember. Second, the syntax `.isActive = true` is awkward. Doug Suriano helpfully [provides](https://youtu.be/DmpoiN-SVds) fixes for both in the forms of extensions on `UIView` and `NSLayoutConstraint`.
 
 In the `Misc` group, create a file called `UIViewExtension.swift` and give it the following contents:
 
@@ -362,7 +362,7 @@ The cat table needs data, so change the first line of `BreedBrowseVC`'s definiti
 class BreedBrowseVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
 ```
 
-As an aside, the Author recognizes, past practice [notwithstanding](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/RunDetailsVC.swift), that, in production apps, the implementation by `UIViewController`s of many `UIKit` protocols may cause code bloat.
+As an aside, the Author recognizes, past practice [notwithstanding](https://github.com/vermont42/RaceRunner/blob/master/RaceRunner/RunDetailsVC.swift), that, in production apps, the implementation by `UIViewController`s of many `UIKit` protocols may cause code [bloat](http://khanlou.com/2014/09/8-patterns-to-help-you-destroy-massive-view-controller/).
 
 To fix the compilation errors, add to `BreedBrowseVC`'s definition the following implementations of the protocols:
 
@@ -387,7 +387,7 @@ This is an example of why, when converting an app from IB to PL, the developer s
 breedBrowseView.setupTable(dataSource: self, delegate: self)
 ```
 
-15\. Feel free to build, but _don't_ run. If you do, a fatal error will occur in `BreedCell.swift` because there are outlets between `BreedCell` and the unused storyboard. Fatal error aside, there are no Auto Layout constraints on this view. Replace the definition of `BreedCell` with the following:
+15\. Feel free to build, but _don't_ run. If you do, a [fatal error](https://fatalerror.fm/) will occur in `BreedCell.swift` because there are outlets between `BreedCell` and the unused storyboard. Fatal error aside, there are no Auto Layout constraints on this view. Replace the definition of `BreedCell` with the following:
 
 ```
 class BreedCell: UITableViewCell {
@@ -437,11 +437,11 @@ class BreedCell: UITableViewCell {
 
 The structure of this code should be familiar from `BreedBrowseView`, but here are some comments:
 
-// 0: One step in the conversion of an app from IB to to PL is to inventory the fonts used in the app and centralize them in one file. As with colors, in a production app, these fonts, and their names, might be specified in a style guide from a designer. The Author has done the work of identifying the fonts for you. They are in the file `Fonts.swift`, and he uses one of them for `BreedCell.name`.
+// 0: One step in the conversion of an app from IB to to PL is to inventory the fonts used in the app and centralize them in one file. As with colors, in a production app, these fonts, and their names, might be specified in a style guide from a designer. The Author has identified the fonts for you. They are in the file `Fonts.swift`, and he uses one of them for `BreedCell.name`.
 
 // 1: In the IB version of this app, the height of the cat thumbnail, the width of that thumbnail, and the height of each row were identical but repeated twice, violating DRY. Defining this value once here promotes DRY.
 
-// 2: This Auto Layout code demonstrates three new types of anchors: `heightAnchor`, `widthAnchor`, and `centerYAnchor`. The Author hopes you find these usages pellucid.
+// 2: This Auto Layout code demonstrates three new types of anchors: `heightAnchor`, `widthAnchor`, and `centerYAnchor`. The Author hopes you find these usages [pellucid](https://blogging.com/ten-dollar-copy-words/).
 
 16\. The table's rows currently have a default height, not the appropriate height based on the height of the cat thumbnails. To fix this, add the following implementation to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`:
 
@@ -456,7 +456,7 @@ Build _and_ run. You now have a cat table made with PL!
 ![Cat Table](images/catTable.png "Cat Table Built with Programmatic Layout")
 
 
-17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the `name` label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has done the work of identifying these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
+17\: `BreedCell.init()` has a magic number: `8.0`. This is the amount of space or "padding" between the thumbnail and the `name` label. For a variety of reasons ably summarized [here](https://stackoverflow.com/a/47890), magic numbers are bad. The next step in the conversion of this (or any) app from IB to PL is to identify paddings used in the storyboard and isolate them in one place. As with colors, in a production app, these paddings, and their names, might be specified in a style guide from a designer. The Author has identified these paddings for you. In the group `Models`, create a file called `Padding.swift` and give it the following contents:
 
 ```
 import UIKit
@@ -514,7 +514,7 @@ This code is similar to that of other `UIViewController` subclasses discussed, w
 
 // 0: This function is a clean way for clients to instantiate a `BreedDetailVC` with precisely the model data it needs, an instance of `Breed`. Clients could initialize `BreedDetailVC` directly, but if they did, they would have to remember to set the `breed` property, which would need to be `internal` rather than `private`. In this situation, instances of `BreedDetailVC` would be in an unusable state until clients set the value of the `breed` property.
 
-The benefit of the approach used here becomes even more apparent when `UIViewController` subclasses have many properties that need to be set. Because of autocompletion of `getViewController()`, clients never forget to provide necessary values.
+The benefit of the approach used here becomes even more apparent when `UIViewController` subclasses have many properties that need to be set. Because of Xcode's autocompletion of `getViewController()`'s arguments, clients never forget to provide necessary value(s).
 
 20\. To allow the transition from `BreedViewVC` to `BreedDetailVC`, in `BreedBrowseVC.swift`, add the following to the definition of `BreedBrowseVC`:
 
@@ -758,7 +758,7 @@ There are nine `UILabel`s near the top of the screen that are identical except f
 
 
 
-// 2: Here is an example of using `forEach` to avoid code duplication.
+// 2: Here is an example of using `forEach()` to avoid code duplication.
 
 // 3: The `constant` parameter of `NSLayoutAnchor.constraint()` sometimes has negative semantics. That is, a positive value results in the opposite padding of what the developer expects. In this situation, the developer must multiply the padding by `-1.0`, as here, to get the desired behavior.
 
