@@ -233,10 +233,10 @@ class BreedBrowseView: UIView {
     // 4
     addSubview(table)
     // 5
-    table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
-    table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
-    table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).activate()
-    table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).activate()
+    table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).isActive = true
+    table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+    table.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+    table.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).isActive = true
   }
 
   // 6
@@ -327,6 +327,7 @@ Replace the overridden `init()` with the following:
 ```
 override init(frame: CGRect) {
   super.init(frame: frame)
+  backgroundColor = Colors.blackish
   addSubview(table)
   table.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).activate()
   table.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).activate()
@@ -485,7 +486,7 @@ class BreedDetailView: UIView {
 }
 ```
 
-19\. `BreedDetailVC` currently assumes that that it's be instantiated from a storyboard, so in `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following:
+19\. `BreedDetailVC` currently assumes that that it's being instantiated from a storyboard, so in `BreedDetailVC.swift`, replace the definition of `BreedDetailVC` with the following:
 
 ```
 class BreedDetailVC: UIViewController, UITextViewDelegate {
@@ -529,7 +530,7 @@ Build and run. Click a row in the cat table. The app transitions to an empty scr
 
 ![Empty Breed Screen](images/emptyBreed.png "Empty Breed Screen")
 
-21\. You may notice that the transition to `BreedDetailVC` is choppy. The Author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add, to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift`, the following function:
+21\. You may notice that the transition to `BreedDetailVC` is choppy. The Author is unsure why this happens, but he saw the same thing when [developing](https://github.com/vermont42/Conjugar) [Conjugar](https://itunes.apple.com/us/app/conjugar/id1236500467). The fix is to add to the definition of `BreedBrowseVC` in `BreedBrowseVC.swift` the following function:
 
 ```
 override func viewWillAppear(_ animated: Bool) {
@@ -615,7 +616,7 @@ class BreedDetailView: UIView {
 
 This code is similar to that of `BreedBrowseView` with the exceptions discussed here.
 
-// 0: The `height` and `width` constraints are unusual in that they vary based on the `y` position of the `UITextView`. Because these constraints vary, they are given persistent names and an initial value here. The initial value, `initialPhotoHeightWidth`, is `internal` because `BreedDetailVC` needs to access it to tell `BreedView` what value to change it to.
+// 0: The `height` and `width` constraints are unusual in that they vary based on the `y` position of the `UITextView`. Because these constraints vary, they are given persistent names and an initial value here. The initial value, `initialPhotoHeightWidth`, is `internal` because `BreedDetailVC` needs to access it to tell `BreedView` what value to change it to as the user scrolls.
 
 // 1: These four lines differ from the setup of most `NSLayoutAnchor` constraints because the two constraints, photo height and width, can vary and are therefore named.
 
@@ -672,7 +673,7 @@ class BreedDetailVC: UIViewController, UITextViewDelegate {
 
 The implementation of `BreedDetailVC` is similar to that of `BreedBrowseVC`, but see Part 23, Comment 3 for a discussion of the hackery involving `hide()`, `unhide()`, and `setContentOffset()`.
 
-Build _and_ run. You now have a working breed-details screen.
+Build _and_ run. You now have a working breed-details screen. Scroll to see the nifty photo-shrinking effect.
 
 ![Tonkinese](images/breedDetail.png "Details on the Tonkinese Breed")
 
@@ -739,13 +740,23 @@ class CreditsView: UIView {
 
 The implementation of `CreditsView` is similar to that of `BreedBrowseView`, discussed in Step 11, but here are some comments about peculiarities of this implementation.
 
-// 0: `UITextView`s default to editable, which is inappropriate for this app. The user shouldn't be able to edit the credits. Also, if the `UITextView` is editable, URLs can't be clicked. You'll notice that `Editable` is unchecked in the storyboard, so this line replicates that. On a meta note, a big part of converting a UI from IB to PL is ensuring that non-default values in the storyboard, such as `editable`, are preserved in the code.
+// 0: `UITextView`s default to editable, which is inappropriate for this app. The user shouldn't be able to edit the credits. Also, if the `UITextView` is editable, URLs can't be tapped to launch Safari. You'll notice that `Editable` is unchecked in the storyboard, so this line replicates that. On a meta note, an important part of converting a UI from IB to PL is ensuring that non-default values in the storyboard, such as `editable`, are preserved in the code.
 
 // 1: This definition and the one after it are for the two meow buttons. You might notice that there is a lot of code duplicated between the two definitions. Depending on your use case, it might make sense to factor out code that is shared among controls. Here is an example of that from [Conjugar](https://github.com/vermont42/Conjugar):
 
 ![Conjugar](images/Conjugar.png "Conjugation of Oír in Conjugar")
 
-There are nine `UILabel`s near the top of the screen that are identical except for their content. Rather than repeating the setup of each `UILabel`, the Author [factored out](https://github.com/vermont42/Conjugar/blob/master/Conjugar/VerbView.swift) shared setup. This shared code could at the top of `init()`, as in Conjugar, or in a separate function.
+There are nine `UILabel`s near the top of the screen that are identical except for their content. Rather than repeating the setup of each `UILabel`, the Author [factored out](https://github.com/vermont42/Conjugar/blob/master/Conjugar/VerbView.swift) shared setup. This shared code could at the top of `init()`, as in Conjugar, or in a separate function. Here is how Conjugar avoids duplication of code for the `UILabel`s:
+
+```
+[translation, parentOrType, participioLabel, participio, gerundioLabel, gerundio, raizFuturaLabel, raizFutura, defectivo].forEach {
+  $0.font = Fonts.label
+  $0.textColor = Colors.yellow
+  $0.enableAutoLayout()
+}
+```
+
+
 
 // 2: Here is an example of using `forEach` to avoid code duplication.
 
@@ -802,7 +813,7 @@ override func loadView() {
 }
 ```
 
-// 1: This is an implementation of a selector that should fire when a `UIButton` is tapped. The `@objc` keyword is required to expose the implementation to the Objective-C runtime.
+// 1: This is an implementation of a selector that fires when the user taps a `UIButton`. The `@objc` keyword is required to expose the implementation to the Objective-C runtime.
 
 On an illustrative note, here is the implementation of a selector for a `UISegmentedControl` in [Conjugar](https://github.com/vermont42/Conjugar/blob/master/Conjugar/BrowseVerbsVC.swift):
 
@@ -812,14 +823,14 @@ On an illustrative note, here is the implementation of a selector for a `UISegme
 }
 ```
 
-26\. Conversion is complete! For the sake of [簡素](https://theendlessfurther.com/tag/kanso/), delete `Main.storyboard` and commented-out IB-dependent code. A fully converted version of the app is available [here]().
+26\. Conversion is complete! For the sake of [簡素](https://theendlessfurther.com/tag/kanso/), delete `Main.storyboard` and commented-out IB-dependent code. A fully converted version of the app is available [here](). Enjoy learning about cat breeds.
 
 ### Closing Thoughts
 
-The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate for your use case. If conversion is your plan, he recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of third-party dependencies [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit) provides such a clean API that he considers that framework to be a viable alternative to raw `NSLayoutAnchor`.
+The Author encourages you to use the learnings in this tutorial to start converting your app from IB to PL, if appropriate for your use case. He recommends that you investigate the Auto Layout options described in the Paul Hudson [article](https://www.hackingwithswift.com/articles/9/best-alternatives-to-auto-layout). Although the Author does not take addition of third-party dependencies [lightly](https://github.com/vermont42/RaceRunner/blob/master/Podfile),  [SnapKit](https://github.com/SnapKit/SnapKit) provides such a clean API that he considers that framework to be a viable alternative to raw `NSLayoutAnchor`.
 
 ### Credits
 
 * [Matt](https://twitter.com/matt_luedke) [Luedke](https://soundcloud.com/good_day_sir/real-thing-instrumental) shared PL's benefits with the Author and taught him its use.
 * [Doug Suriano](https://twitter.com/dougsuriano) created extensions on `UIView` and `NSLayoutConstraint` that improve the PL experience.
-* [iOSDevUK](https://twitter.com/IOSDEVUK) inspired the Author to create [Conjugar](https://github.com/vermont42/Conjugar), his first PL-from-scratch app. This tutorial is a companion piece to a talk he presented at that conference in 2017.
+* [iOSDevUK](https://twitter.com/IOSDEVUK), by accepting the Author's proposal for a talk on PL, motivated him to create [Conjugar](https://github.com/vermont42/Conjugar), his first PL-from-scratch app. This tutorial is a companion piece to the talk he presented.
