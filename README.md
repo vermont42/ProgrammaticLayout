@@ -746,7 +746,7 @@ The implementation of `CreditsView` is similar to that of `BreedBrowseView`, dis
 
 ![Conjugar](images/Conjugar.png "Conjugation of Oír in Conjugar")
 
-There are nine `UILabel`s near the top of the screen that are identical except for their content. Rather than repeating the setup of each `UILabel`, the Author [factored out](https://github.com/vermont42/Conjugar/blob/master/Conjugar/VerbView.swift) shared setup. This shared code could at the top of `init()`, as in Conjugar, or in a separate function. Here is how Conjugar avoids duplication of code for the `UILabel`s:
+There are nine `UILabel`s near the top of the screen that are identical except for their content. Rather than repeating the setup of each `UILabel`, the Author [factored out](https://github.com/vermont42/Conjugar/blob/master/Conjugar/VerbView.swift) shared setup. This shared code could appear at the top of `init()`, as in Conjugar, or in a separate function. Here is how Conjugar avoids duplication of code for the `UILabel`s:
 
 ```
 [translation, parentOrType, participioLabel, participio, gerundioLabel, gerundio, raizFuturaLabel, raizFutura, defectivo].forEach {
